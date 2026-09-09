@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EAIM 스튜디오</title>
+<style>
+  :root{
+    --paper:#f7f5f2; --ink:#2b2b2b; --ink-soft:#6b6560; --line:#e3ded7;
+    --mind:#c05a4e; --mind-bg:#fbf0ee;
+    --korean:#2f7a6b; --korean-bg:#ecf5f2;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'Pretendard','Malgun Gothic',sans-serif; line-height:1.6;
+  }
+  .wrap{max-width:860px;margin:0 auto;padding:48px 20px 80px}
+
+  header.top{display:flex;justify-content:space-between;align-items:flex-end;
+    padding-bottom:20px;border-bottom:1px solid var(--line);margin-bottom:40px;flex-wrap:wrap;gap:12px}
+  header.top h1{margin:0;font-size:1.8rem;letter-spacing:-.02em}
+  header.top p{margin:4px 0 0;color:var(--ink-soft);font-size:.92rem}
+  #who{font-size:.9rem;color:var(--ink-soft)}
+
+  button{font-family:inherit;cursor:pointer}
+  .btn{padding:12px 20px;border:0;border-radius:10px;background:var(--ink);color:#fff;
+    font-weight:700;font-size:.98rem}
+  .btn.ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line)}
+  .btn.small{padding:8px 14px;font-size:.86rem}
+  .btn:disabled{opacity:.45;cursor:default}
+
+  /* 앱 고르기 */
+  .track{margin-bottom:38px}
+  .track h2{font-size:1.05rem;margin:0 0 4px;display:flex;align-items:center;gap:9px}
+  .track .dot{width:9px;height:9px;border-radius:50%}
+  .track .hint{margin:0 0 16px;color:var(--ink-soft);font-size:.88rem}
+  .apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+  .app{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:18px 14px;
+    text-align:left;display:flex;align-items:center;gap:11px;font-size:.98rem;font-weight:600;
+    color:var(--ink);transition:border-color .15s, background .15s}
+  .app .ico{font-size:1.5rem;line-height:1}
+  .app[aria-pressed="true"]{background:#fff;border-width:2px}
+  .track.mind .app[aria-pressed="true"]{border-color:var(--mind);background:var(--mind-bg)}
+  .track.korean .app[aria-pressed="true"]{border-color:var(--korean);background:var(--korean-bg)}
+
+  /* 방 만들기 */
+  .panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:26px;margin-bottom:28px}
+  .panel h3{margin:0 0 18px;font-size:1.1rem}
+  label{display:block;font-weight:700;font-size:.86rem;margin:0 0 6px}
+  input[type=text],input[type=number],select{
+    width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:9px;
+    font-size:1rem;font-family:inherit;background:#fff}
+  input:focus,select:focus{outline:none;border-color:var(--ink)}
+  .field{margin-bottom:16px}
+  .two{display:flex;gap:14px}.two>*{flex:1}
+
+  /* 방 목록 */
+  .room{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:14px}
+  .room .head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+  .room .title{font-weight:700;font-size:1.05rem;margin:0}
+  .room .meta{color:var(--ink-soft);font-size:.85rem;margin:3px 0 0}
+  .code{font-size:1.5rem;font-weight:800;letter-spacing:.14em;margin:14px 0 0}
+  .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .closed{opacity:.55}
+  .qr{margin-top:16px;display:none;text-align:center}
+  .qr img{border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px}
+  .qr .link{font-size:.8rem;color:var(--ink-soft);word-break:break-all;margin-top:8px}
+
+  .works{margin-top:16px;display:none;border-top:1px solid var(--line);padding-top:16px}
+  .work{padding:12px 0;border-bottom:1px dashed var(--line)}
+  .work:last-child{border-bottom:0}
+  .work .stu{font-weight:700;font-size:.9rem}
+  .work .body{white-space:pre-wrap;font-size:.92rem;margin-top:5px;color:#3d3833}
+
+  .empty{color:var(--ink-soft);font-size:.92rem;padding:20px 0}
+  .gate{text-align:center;padding:70px 20px}
+  .gate p{color:var(--ink-soft);margin-bottom:26px}
+  .hidden{display:none !important}
+  @media(max-width:520px){.two{flex-direction:column;gap:16px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <h1>EAIM 스튜디오</h1>
+      <p>마음 트랙과 한국어 트랙 수업방을 여는 곳</p>
+    </div>
+    <div id="who"></div>
+  </header>
+
+  <!-- 로그인 전 -->
+  <section id="gate" class="gate">
+    <p>수업방을 만들려면 선생님 구글 계정으로 들어와 주세요.<br>학생은 선생님이 나눠준 QR이나 링크로 바로 들어갑니다.</p>
+    <button class="btn" id="loginBtn">구글 계정으로 시작하기</button>
+  </section>
+
+  <!-- 로그인 후 -->
+  <main id="main" class="hidden">
+
+    <section class="panel" id="keyPanel">
+      <h3>🔑 Gemini API 키 <span id="keyState" style="font-weight:400;font-size:.85rem;color:var(--ink-soft)"></span></h3>
+      <p style="margin:-8px 0 16px;color:var(--ink-soft);font-size:.88rem">
+        이 브라우저에만 저장됩니다. 학생 기기로 넘어가지 않아요.
+        한국어 수업 실시간 화면에서 답장 초안을 만들 때 쓰입니다.
+      </p>
+      <div class="two">
+        <div class="field" style="margin-bottom:0">
+          <input type="password" id="apiKey" placeholder="AIza..." style="width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:9px;font-size:1rem;font-family:inherit">
+        </div>
+        <div style="flex:0 0 auto;display:flex;gap:8px;align-items:flex-start">
+          <button class="btn" id="saveKey">저장</button>
+          <button class="btn ghost" id="showKey">보기</button>
+        </div>
+      </div>
+      <p style="margin:14px 0 0;font-size:.84rem;color:var(--ink-soft)">
+        키 받는 곳: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" style="color:var(--ink)">aistudio.google.com/apikey</a>
+        · Google Cloud에서 사용량 상한을 걸어두시면 안전합니다.
+      </p>
+    </section>
+
+    <div class="track mind">
+      <h2><span class="dot" style="background:var(--mind)"></span>마음 트랙</h2>
+      <p class="hint">감정과 가치를 다루는 다섯 개. 학생 글은 행발 참고용으로 모입니다.</p>
+      <div class="apps" id="apps-mind"></div>
+    </div>
+
+    <div class="track korean">
+      <h2><span class="dot" style="background:var(--korean)"></span>한국어 트랙</h2>
+      <p class="hint">한국어를 배우는 학생용. 개인별로 진도가 쌓입니다. 수업 중에는 <a href="korean-live.html" style="color:var(--korean);font-weight:700">실시간 화면</a>에서 답장을 보내세요.</p>
+      <div class="apps" id="apps-korean"></div>
+    </div>
+
+    <section class="panel" id="makePanel">
+      <h3>수업방 만들기</h3>
+      <div class="field">
+        <label for="roomTitle">수업 이름</label>
+        <input type="text" id="roomTitle" placeholder="앱을 먼저 골라주세요" disabled>
+      </div>
+      <div class="two">
+        <div class="field">
+          <label for="roomMode">활동 방식</label>
+          <select id="roomMode">
+            <option value="individual">개인별</option>
+            <option value="group">모둠별</option>
+            <option value="class">반 전체</option>
+          </select>
+        </div>
+        <div class="field" id="groupField" style="display:none">
+          <label for="groupSize">모둠당 인원</label>
+          <input type="number" id="groupSize" value="4" min="2" max="10">
+        </div>
+      </div>
+      <button class="btn" id="makeBtn" disabled>수업방 열기</button>
+    </section>
+
+    <h3 style="font-size:1.1rem;margin:34px 0 14px">내 수업방</h3>
+    <div id="rooms"><p class="empty">아직 만든 수업방이 없습니다.</p></div>
+
+  </main>
+</div>
+
+<script type="module">
+import {
+  STUDIO_APPS, teacherLogin, teacherLogout, onTeacherAuthChange,
+  createRoom, listMyRooms, toggleRoomOpen, listWorks,
+  qrImageUrl, studentLink, toast
+} from './eaim-classroom-core.js';
+
+let picked = null;
+
+/* ── 앱 카드 그리기 ── */
+function drawApps() {
+  const boxes = { mind: document.getElementById('apps-mind'), korean: document.getElementById('apps-korean') };
+  Object.entries(STUDIO_APPS).forEach(([key, meta]) => {
+    const b = document.createElement('button');
+    b.className = 'app';
+    b.type = 'button';
+    b.setAttribute('aria-pressed', 'false');
+    b.dataset.key = key;
+    b.innerHTML = `<span class="ico">${meta.icon}</span><span>${meta.name}</span>`;
+    b.addEventListener('click', () => pick(key, meta));
+    boxes[meta.track].appendChild(b);
+  });
+}
+
+function pick(key, meta) {
+  picked = key;
+  document.querySelectorAll('.app').forEach(a =>
+    a.setAttribute('aria-pressed', String(a.dataset.key === key)));
+  const t = document.getElementById('roomTitle');
+  t.disabled = false;
+  t.value = `${meta.name} 수업`;
+  document.getElementById('makeBtn').disabled = false;
+}
+
+document.getElementById('roomMode').addEventListener('change', (e) => {
+  document.getElementById('groupField').style.display = e.target.value === 'group' ? '' : 'none';
+});
+
+/* ── 로그인 ── */
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  try { await teacherLogin(); }
+  catch (e) { console.error(e); toast('로그인하지 못했어요. 다시 눌러주세요.', false); }
+});
+
+onTeacherAuthChange(async (user) => {
+  const gate = document.getElementById('gate');
+  const main = document.getElementById('main');
+  const who = document.getElementById('who');
+  if (user && !user.isAnonymous) {
+    gate.classList.add('hidden');
+    main.classList.remove('hidden');
+    who.innerHTML = `${user.email} <button class="btn ghost small" id="outBtn" style="margin-left:8px">나가기</button>`;
+    document.getElementById('outBtn').addEventListener('click', () => teacherLogout());
+    await refreshRooms();
+  } else {
+    gate.classList.remove('hidden');
+    main.classList.add('hidden');
+    who.textContent = '';
+  }
+});
+
+/* ── 방 만들기 ── */
+document.getElementById('makeBtn').addEventListener('click', async () => {
+  if (!picked) return;
+  const btn = document.getElementById('makeBtn');
+  btn.disabled = true; btn.textContent = '만드는 중...';
+  try {
+    await createRoom({
+      appType: picked,
+      title: document.getElementById('roomTitle').value.trim() || STUDIO_APPS[picked].name,
+      mode: document.getElementById('roomMode').value,
+      groupSize: Number(document.getElementById('groupSize').value) || 4,
+    });
+    toast('수업방을 열었어요');
+    await refreshRooms();
+  } catch (e) {
+    console.error(e); toast('만들지 못했어요. 다시 해주세요.', false);
+  } finally {
+    btn.disabled = false; btn.textContent = '수업방 열기';
+  }
+});
+
+/* ── 방 목록 ── */
+const MODE_LABEL = { individual: '개인별', group: '모둠별', class: '반 전체' };
+
+async function refreshRooms() {
+  const box = document.getElementById('rooms');
+  box.innerHTML = '<p class="empty">불러오는 중...</p>';
+  let rooms = [];
+  try { rooms = await listMyRooms(); }
+  catch (e) { console.error(e); box.innerHTML = '<p class="empty">목록을 불러오지 못했어요. 새로고침해 주세요.</p>'; return; }
+
+  if (!rooms.length) { box.innerHTML = '<p class="empty">아직 만든 수업방이 없습니다.</p>'; return; }
+  box.innerHTML = '';
+
+  rooms.forEach(r => {
+    const meta = STUDIO_APPS[r.app] || { name: r.app, icon: '📘', track: 'mind' };
+    const el = document.createElement('div');
+    el.className = 'room' + (r.isOpen ? '' : ' closed');
+    el.innerHTML = `
+      <div class="head">
+        <div>
+          <p class="title">${meta.icon} ${r.title || meta.name}</p>
+          <p class="meta">${meta.name} · ${MODE_LABEL[r.mode] || r.mode}${r.isOpen ? '' : ' · 닫힘'}</p>
+        </div>
+        <p class="code">${r.code || '------'}</p>
+      </div>
+      <div class="acts">
+        <button class="btn small ghost" data-act="qr">QR 보기</button>
+        <button class="btn small ghost" data-act="copy">링크 복사</button>
+        <button class="btn small ghost" data-act="works">결과 보기</button>
+        ${meta.track === 'korean' ? '<a class="btn small ghost" style="text-decoration:none;display:inline-block" href="korean-live.html">실시간 화면</a>' : ''}
+        <button class="btn small ghost" data-act="toggle">${r.isOpen ? '닫기' : '다시 열기'}</button>
+      </div>
+      <div class="qr"></div>
+      <div class="works"></div>`;
+
+    const link = studentLink(r.code, r.app);
+    const qrBox = el.querySelector('.qr');
+    const workBox = el.querySelector('.works');
+
+    el.querySelector('[data-act="qr"]').addEventListener('click', () => {
+      if (qrBox.style.display === 'block') { qrBox.style.display = 'none'; return; }
+      qrBox.innerHTML = `<img src="${qrImageUrl(link, 240)}" alt="입장 QR" width="240" height="240">
+                         <p class="link">${link}</p>`;
+      qrBox.style.display = 'block';
+    });
+
+    el.querySelector('[data-act="copy"]').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(link); toast('링크를 복사했어요'); }
+      catch { prompt('이 주소를 복사해 주세요', link); }
+    });
+
+    el.querySelector('[data-act="toggle"]').addEventListener('click', async () => {
+      try { await toggleRoomOpen(r.id, !r.isOpen); await refreshRooms(); }
+      catch (e) { console.error(e); toast('바꾸지 못했어요', false); }
+    });
+
+    el.querySelector('[data-act="works"]').addEventListener('click', async () => {
+      if (workBox.style.display === 'block') { workBox.style.display = 'none'; return; }
+      workBox.style.display = 'block';
+      workBox.innerHTML = '<p class="empty">불러오는 중...</p>';
+      try {
+        const works = await listWorks(r.id, meta.track);
+        if (!works.length) { workBox.innerHTML = '<p class="empty">아직 들어온 것이 없습니다.</p>'; return; }
+        workBox.innerHTML = works.map(w => `
+          <div class="work">
+            <p class="stu">${w.className || ''} ${w.number || ''}번 ${w.name || ''} · ${w.kind || ''}</p>
+            <div class="body">${escapeHtml(w.content || '')}</div>
+          </div>`).join('');
+      } catch (e) {
+        console.error(e);
+        workBox.innerHTML = '<p class="empty">결과를 불러오지 못했어요.</p>';
+      }
+    });
+
+    box.appendChild(el);
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+/* ── API 키 (이 브라우저에만 저장) ── */
+const KEY_NAME = 'EAIM_GEMINI_KEY';
+const keyInput = document.getElementById('apiKey');
+const keyState = document.getElementById('keyState');
+
+function refreshKeyState() {
+  const has = !!localStorage.getItem(KEY_NAME);
+  keyState.textContent = has ? '저장되어 있음' : '아직 저장 안 됨';
+  if (has) keyInput.value = localStorage.getItem(KEY_NAME);
+}
+document.getElementById('saveKey').addEventListener('click', () => {
+  const v = keyInput.value.trim();
+  if (!v) { localStorage.removeItem(KEY_NAME); toast('키를 지웠어요'); refreshKeyState(); return; }
+  localStorage.setItem(KEY_NAME, v);
+  toast('키를 저장했어요');
+  refreshKeyState();
+});
+document.getElementById('showKey').addEventListener('click', () => {
+  keyInput.type = keyInput.type === 'password' ? 'text' : 'password';
+});
+refreshKeyState();
+
+drawApps();
+</script>
+</body>
+</html>

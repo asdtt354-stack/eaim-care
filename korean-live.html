@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한국어 수업 — 실시간 화면</title>
+<style>
+  :root{
+    --paper:#f7f5f2; --ink:#2b2b2b; --ink-soft:#6b6560; --line:#e3ded7;
+    --korean:#2f7a6b; --korean-bg:#ecf5f2; --warn:#c05a4e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:'Pretendard','Malgun Gothic',sans-serif;line-height:1.6}
+  .wrap{max-width:900px;margin:0 auto;padding:32px 20px 90px}
+  a{color:var(--korean)}
+
+  header.top{display:flex;justify-content:space-between;align-items:center;gap:12px;
+    padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:26px;flex-wrap:wrap}
+  header.top h1{margin:0;font-size:1.45rem;letter-spacing:-.02em}
+  header.top .sub{color:var(--ink-soft);font-size:.88rem;margin:2px 0 0}
+
+  button{font-family:inherit;cursor:pointer}
+  .btn{padding:11px 18px;border:0;border-radius:10px;background:var(--korean);color:#fff;font-weight:700;font-size:.95rem}
+  .btn.ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line)}
+  .btn.small{padding:7px 13px;font-size:.84rem}
+  .btn:disabled{opacity:.45;cursor:default}
+
+  select,textarea,input[type=text]{font-family:inherit;font-size:1rem;
+    border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;background:#fff;width:100%}
+  select:focus,textarea:focus,input:focus{outline:none;border-color:var(--korean)}
+  textarea{resize:vertical;min-height:92px;line-height:1.6}
+
+  .bar{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:26px}
+  .bar .f{flex:1;min-width:220px}
+  label{display:block;font-weight:700;font-size:.84rem;margin:0 0 6px}
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:20px;margin-bottom:14px}
+  .card.new{border-color:var(--korean);border-width:2px}
+  .stu{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .stu .name{font-weight:700}
+  .stu .when{color:var(--ink-soft);font-size:.8rem}
+  .text{white-space:pre-wrap;background:#faf8f5;border:1px solid var(--line);
+    border-radius:11px;padding:14px;margin:12px 0 0;font-size:1rem}
+  .reply{margin-top:14px}
+  .reply .acts{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+  .done{background:var(--korean-bg);border:1px solid #cfe3dc;border-radius:11px;
+    padding:13px;margin-top:12px;white-space:pre-wrap;font-size:.97rem}
+  .done .tag{font-size:.76rem;font-weight:700;color:var(--korean);display:block;margin-bottom:5px}
+
+  .empty{color:var(--ink-soft);padding:40px 0;text-align:center}
+  .gate{text-align:center;padding:70px 20px}
+  .gate p{color:var(--ink-soft);margin-bottom:24px}
+  .hidden{display:none !important}
+  .keynote{background:#fff8e8;border:1px solid #edd9a8;border-radius:11px;
+    padding:13px 15px;font-size:.88rem;color:#7a5c1e;margin-bottom:22px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <h1>한국어 수업 — 실시간 화면</h1>
+      <p class="sub">학생이 보낸 글이 여기에 바로 올라옵니다. <a href="index.html">스튜디오로</a></p>
+    </div>
+    <div id="who"></div>
+  </header>
+
+  <section id="gate" class="gate">
+    <p>선생님 구글 계정으로 들어와 주세요.</p>
+    <button class="btn" id="loginBtn">구글 계정으로 시작하기</button>
+  </section>
+
+  <main id="main" class="hidden">
+    <p class="keynote" id="keynote"></p>
+
+    <div class="bar">
+      <div class="f">
+        <label for="roomSel">수업방</label>
+        <select id="roomSel"><option value="">불러오는 중...</option></select>
+      </div>
+      <button class="btn ghost" id="reloadBtn">목록 새로고침</button>
+    </div>
+
+    <div id="list"><p class="empty">수업방을 골라주세요.</p></div>
+  </main>
+</div>
+
+<script type="module">
+import {
+  STUDIO_APPS, teacherLogin, teacherLogout, onTeacherAuthChange,
+  listMyRooms, listenWorks, sendFeedback, toast
+} from './eaim-classroom-core.js';
+
+const KEY_NAME = 'EAIM_GEMINI_KEY';
+let unsub = null;
+let seen = new Set();
+
+/* ── 로그인 ── */
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  try { await teacherLogin(); }
+  catch (e) { console.error(e); toast('로그인하지 못했어요. 다시 눌러주세요.', false); }
+});
+
+onTeacherAuthChange(async (user) => {
+  const gate = document.getElementById('gate');
+  const main = document.getElementById('main');
+  const who = document.getElementById('who');
+  if (user && !user.isAnonymous) {
+    gate.classList.add('hidden');
+    main.classList.remove('hidden');
+    who.innerHTML = `<span style="font-size:.88rem;color:var(--ink-soft)">${user.email}</span>
+                     <button class="btn ghost small" id="outBtn" style="margin-left:8px">나가기</button>`;
+    document.getElementById('outBtn').addEventListener('click', () => teacherLogout());
+    drawKeyNote();
+    await loadRooms();
+  } else {
+    gate.classList.remove('hidden');
+    main.classList.add('hidden');
+    who.textContent = '';
+    if (unsub) { unsub(); unsub = null; }
+  }
+});
+
+function drawKeyNote() {
+  const el = document.getElementById('keynote');
+  el.textContent = localStorage.getItem(KEY_NAME)
+    ? 'AI 초안 기능을 쓸 수 있습니다. 초안은 반드시 읽어보고 고쳐서 보내주세요.'
+    : '스튜디오 첫 화면에서 Gemini API 키를 저장하면 답장 초안을 AI가 만들어 줍니다. 키가 없어도 직접 쓰실 수 있어요.';
+}
+
+/* ── 방 목록 (한국어 트랙만) ── */
+async function loadRooms() {
+  const sel = document.getElementById('roomSel');
+  let rooms = [];
+  try { rooms = await listMyRooms(); }
+  catch (e) { console.error(e); sel.innerHTML = '<option value="">불러오지 못했어요</option>'; return; }
+
+  rooms = rooms.filter(r => (STUDIO_APPS[r.app]?.track) === 'korean');
+  if (!rooms.length) {
+    sel.innerHTML = '<option value="">한국어 트랙 수업방이 없습니다</option>';
+    document.getElementById('list').innerHTML =
+      '<p class="empty">스튜디오 첫 화면에서 한국어 놀이터 수업방을 먼저 만들어 주세요.</p>';
+    return;
+  }
+  sel.innerHTML = '<option value="">고르세요</option>' + rooms.map(r =>
+    `<option value="${r.id}">${r.title || STUDIO_APPS[r.app].name}${r.isOpen ? '' : ' (닫힘)'}</option>`).join('');
+}
+
+document.getElementById('reloadBtn').addEventListener('click', loadRooms);
+
+document.getElementById('roomSel').addEventListener('change', (e) => {
+  const roomId = e.target.value;
+  if (unsub) { unsub(); unsub = null; }
+  seen = new Set();
+  const list = document.getElementById('list');
+  if (!roomId) { list.innerHTML = '<p class="empty">수업방을 골라주세요.</p>'; return; }
+  list.innerHTML = '<p class="empty">기다리는 중...</p>';
+  unsub = listenWorks(roomId, (rows) => render(roomId, rows));
+});
+
+/* ── 화면 그리기 ── */
+function render(roomId, rows) {
+  const list = document.getElementById('list');
+  if (!rows.length) {
+    list.innerHTML = '<p class="empty">아직 들어온 글이 없습니다. 학생이 보내면 바로 나타납니다.</p>';
+    return;
+  }
+  // 답장 안 한 것을 위로
+  rows.sort((a, b) => (a.feedback ? 1 : 0) - (b.feedback ? 1 : 0));
+
+  list.innerHTML = '';
+  rows.forEach(r => {
+    const isNew = !r.feedback && !seen.has(r.id);
+    const el = document.createElement('div');
+    el.className = 'card' + (isNew ? ' new' : '');
+    el.innerHTML = `
+      <div class="stu">
+        <span class="name">${esc(r.className || '')} ${esc(r.number || '')}번 ${esc(r.name || '')}</span>
+        <span class="when">${fmt(r.createdAt)}</span>
+      </div>
+      <div class="text">${esc(r.content || '')}</div>
+      ${r.feedback
+        ? `<div class="done"><span class="tag">보낸 답장${r.feedbackBy === 'ai-edited' ? ' (AI 초안 고침)' : ''}</span>${esc(r.feedback)}</div>`
+        : `<div class="reply">
+             <textarea placeholder="이 학생에게 해줄 말을 써주세요"></textarea>
+             <div class="acts">
+               <button class="btn" data-act="send">답장 보내기</button>
+               <button class="btn ghost" data-act="ai">AI 초안 받기</button>
+             </div>
+           </div>`}`;
+
+    if (!r.feedback) {
+      const ta = el.querySelector('textarea');
+      let usedAI = false;
+
+      el.querySelector('[data-act="ai"]').addEventListener('click', async (ev) => {
+        const b = ev.currentTarget;
+        const key = localStorage.getItem(KEY_NAME);
+        if (!key) { toast('스튜디오 첫 화면에서 API 키를 먼저 저장해 주세요', false); return; }
+        b.disabled = true; b.textContent = '만드는 중...';
+        try {
+          ta.value = await draftFeedback(key, r.content || '');
+          usedAI = true;
+        } catch (e) {
+          console.error(e); toast('초안을 만들지 못했어요', false);
+        } finally {
+          b.disabled = false; b.textContent = 'AI 초안 받기';
+        }
+      });
+
+      el.querySelector('[data-act="send"]').addEventListener('click', async (ev) => {
+        const text = ta.value.trim();
+        if (!text) { toast('답장을 써주세요', false); return; }
+        const b = ev.currentTarget;
+        b.disabled = true; b.textContent = '보내는 중...';
+        try {
+          await sendFeedback(roomId, r.id, text, usedAI ? 'ai-edited' : 'teacher');
+          seen.add(r.id);
+          toast('답장을 보냈어요');
+        } catch (e) {
+          console.error(e); toast('보내지 못했어요', false);
+          b.disabled = false; b.textContent = '답장 보내기';
+        }
+      });
+    }
+    list.appendChild(el);
+  });
+}
+
+/* ── AI 답장 초안 ──
+   키는 이 브라우저(선생님 기기)에만 있습니다. 학생 기기로 가지 않습니다. */
+async function draftFeedback(key, studentText) {
+  const promptText =
+    "너는 한국어를 배우는 중학생을 가르치는 선생님이야. 선생님이 학생에게 보낼 답장의 초안을 써 줘.\n" +
+    "학생이 쓴 글:\n<<<" + studentText + ">>>\n\n" +
+    "이 순서로 써:\n" +
+    "1) 이 글에서 잘한 점을 하나만 골라, 학생이 실제로 쓴 표현을 인용하면서 칭찬해.\n" +
+    "2) 어색한 문장이 있으면 한 군데만 골라 고친 문장을 보여줘. 어색한 데가 없으면 이 부분은 빼.\n" +
+    "3) 다음에 해보면 좋을 것을 하나만 말해줘.\n\n" +
+    "규칙: 쉬운 낱말과 짧은 문장으로. 마크다운 기호는 쓰지 마. 기죽지 않게. 전체 4~6문장.";
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${key}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: promptText }] }],
+        generationConfig: { maxOutputTokens: 600, thinkingConfig: { thinkingBudget: 0 } }
+      })
+    }
+  );
+  const data = await res.json();
+  const out = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!out) throw new Error('empty');
+  return out.trim();
+}
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+function fmt(ts) {
+  if (!ts?.seconds) return '';
+  const d = new Date(ts.seconds * 1000);
+  return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+</script>
+</body>
+</html>
