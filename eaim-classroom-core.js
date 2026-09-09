@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
-   EAIM Studio — Classroom Core
-   사회·역사 플랫폼의 eaim-classroom-core.js를 스튜디오용으로 정리한 것.
+   에임 케어 — Classroom Core
+   사회·역사 플랫폼의 eaim-classroom-core.js를 에임 케어용으로 정리한 것.
    Firebase 프로젝트(eaim-classroom)는 그대로 재사용합니다.
 
    경로 구조 (기존과 동일)
@@ -53,7 +53,7 @@ const TRACK = () => window.EAIM_TRACK || 'mind';
 const WORK_COL = () => (TRACK() === 'korean' ? 'koreanProgress' : 'reflections');
 
 /* ════════ 스튜디오 앱 목록 ════════ */
-export const STUDIO_APPS = {
+export const CARE_APPS = {
   'mind-scale':      { track: 'mind',   file: 'mind_scale.html',       name: '마음 저울',       icon: '⚖️' },
   'music-rep':       { track: 'mind',   file: 'music_rep.html',        name: '뮤직랩',          icon: '🎵' },
   'life-action':     { track: 'mind',   file: 'life-action-q.html',    name: '라이프 액션Q',    icon: '⚡' },
@@ -98,7 +98,7 @@ function genCode() {
 
 /**
  * 교사: 새 수업방 만들기
- * app     : STUDIO_APPS의 키
+ * app     : CARE_APPS의 키
  * mode    : 'class' 반 전체 | 'group' 모둠별(groupSize 필요) | 'individual' 개인별
  * classes : [{name:'1반', count:24}, ...]
  */
@@ -107,7 +107,7 @@ export async function createRoom({ appType, title, mode = 'individual', classes 
   const type = appType || APP_TYPE();
   const roomRef = await addDoc(collection(db, `teachers/${uid}/rooms`), {
     app: type,
-    track: STUDIO_APPS[type]?.track || TRACK(),
+    track: CARE_APPS[type]?.track || TRACK(),
     title, mode, classes, groupSize,
     isOpen: true,
     createdAt: serverTimestamp(),
@@ -145,7 +145,7 @@ export async function listMyRooms(appType = null) {
     : await getDocs(col);
   return snap.docs
     .map(d => ({ id: d.id, ...d.data() }))
-    .filter(r => !appType ? !!STUDIO_APPS[r.app] : true)
+    .filter(r => !appType ? !!CARE_APPS[r.app] : true)
     .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 }
 
@@ -272,7 +272,7 @@ export function qrImageUrl(link, size = 260) {
 }
 
 export function studentLink(code, appType, baseUrl = location.origin + location.pathname.replace(/[^/]+$/, '')) {
-  const file = STUDIO_APPS[appType]?.file || 'index.html';
+  const file = CARE_APPS[appType]?.file || 'index.html';
   return `${baseUrl}${encodeURI(file)}?code=${code}`;
 }
 

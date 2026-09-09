@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EAIM 스튜디오</title>
+<title>에임 케어</title>
 <style>
   :root{
     --paper:#f7f5f2; --ink:#2b2b2b; --ink-soft:#6b6560; --line:#e3ded7;
@@ -85,7 +85,7 @@
 
   <header class="top">
     <div>
-      <h1>EAIM 스튜디오</h1>
+      <h1>에임 케어</h1>
       <p>마음 트랙과 한국어 트랙 수업방을 여는 곳</p>
     </div>
     <div id="who"></div>
@@ -164,7 +164,7 @@
 
 <script type="module">
 import {
-  STUDIO_APPS, teacherLogin, teacherLogout, onTeacherAuthChange,
+  CARE_APPS, teacherLogin, teacherLogout, onTeacherAuthChange,
   createRoom, listMyRooms, toggleRoomOpen, listWorks,
   qrImageUrl, studentLink, toast
 } from './eaim-classroom-core.js';
@@ -174,7 +174,7 @@ let picked = null;
 /* ── 앱 카드 그리기 ── */
 function drawApps() {
   const boxes = { mind: document.getElementById('apps-mind'), korean: document.getElementById('apps-korean') };
-  Object.entries(STUDIO_APPS).forEach(([key, meta]) => {
+  Object.entries(CARE_APPS).forEach(([key, meta]) => {
     const b = document.createElement('button');
     b.className = 'app';
     b.type = 'button';
@@ -231,7 +231,7 @@ document.getElementById('makeBtn').addEventListener('click', async () => {
   try {
     await createRoom({
       appType: picked,
-      title: document.getElementById('roomTitle').value.trim() || STUDIO_APPS[picked].name,
+      title: document.getElementById('roomTitle').value.trim() || CARE_APPS[picked].name,
       mode: document.getElementById('roomMode').value,
       groupSize: Number(document.getElementById('groupSize').value) || 4,
     });
@@ -258,7 +258,7 @@ async function refreshRooms() {
   box.innerHTML = '';
 
   rooms.forEach(r => {
-    const meta = STUDIO_APPS[r.app] || { name: r.app, icon: '📘', track: 'mind' };
+    const meta = CARE_APPS[r.app] || { name: r.app, icon: '📘', track: 'mind' };
     const el = document.createElement('div');
     el.className = 'room' + (r.isOpen ? '' : ' closed');
     el.innerHTML = `

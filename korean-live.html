@@ -62,7 +62,7 @@
   <header class="top">
     <div>
       <h1>한국어 수업 — 실시간 화면</h1>
-      <p class="sub">학생이 보낸 글이 여기에 바로 올라옵니다. <a href="index.html">스튜디오로</a></p>
+      <p class="sub">학생이 보낸 글이 여기에 바로 올라옵니다. <a href="index.html">에임 케어로</a></p>
     </div>
     <div id="who"></div>
   </header>
@@ -89,7 +89,7 @@
 
 <script type="module">
 import {
-  STUDIO_APPS, teacherLogin, teacherLogout, onTeacherAuthChange,
+  CARE_APPS, teacherLogin, teacherLogout, onTeacherAuthChange,
   listMyRooms, listenWorks, sendFeedback, toast
 } from './eaim-classroom-core.js';
 
@@ -127,7 +127,7 @@ function drawKeyNote() {
   const el = document.getElementById('keynote');
   el.textContent = localStorage.getItem(KEY_NAME)
     ? 'AI 초안 기능을 쓸 수 있습니다. 초안은 반드시 읽어보고 고쳐서 보내주세요.'
-    : '스튜디오 첫 화면에서 Gemini API 키를 저장하면 답장 초안을 AI가 만들어 줍니다. 키가 없어도 직접 쓰실 수 있어요.';
+    : '첫 화면에서 Gemini API 키를 저장하면 답장 초안을 AI가 만들어 줍니다. 키가 없어도 직접 쓰실 수 있어요.';
 }
 
 /* ── 방 목록 (한국어 트랙만) ── */
@@ -137,15 +137,15 @@ async function loadRooms() {
   try { rooms = await listMyRooms(); }
   catch (e) { console.error(e); sel.innerHTML = '<option value="">불러오지 못했어요</option>'; return; }
 
-  rooms = rooms.filter(r => (STUDIO_APPS[r.app]?.track) === 'korean');
+  rooms = rooms.filter(r => (CARE_APPS[r.app]?.track) === 'korean');
   if (!rooms.length) {
     sel.innerHTML = '<option value="">한국어 트랙 수업방이 없습니다</option>';
     document.getElementById('list').innerHTML =
-      '<p class="empty">스튜디오 첫 화면에서 한국어 놀이터 수업방을 먼저 만들어 주세요.</p>';
+      '<p class="empty">한국어 놀이터 수업방을 먼저 만들어 주세요.</p>';
     return;
   }
   sel.innerHTML = '<option value="">고르세요</option>' + rooms.map(r =>
-    `<option value="${r.id}">${r.title || STUDIO_APPS[r.app].name}${r.isOpen ? '' : ' (닫힘)'}</option>`).join('');
+    `<option value="${r.id}">${r.title || CARE_APPS[r.app].name}${r.isOpen ? '' : ' (닫힘)'}</option>`).join('');
 }
 
 document.getElementById('reloadBtn').addEventListener('click', loadRooms);
@@ -198,7 +198,7 @@ function render(roomId, rows) {
       el.querySelector('[data-act="ai"]').addEventListener('click', async (ev) => {
         const b = ev.currentTarget;
         const key = localStorage.getItem(KEY_NAME);
-        if (!key) { toast('스튜디오 첫 화면에서 API 키를 먼저 저장해 주세요', false); return; }
+        if (!key) { toast('첫 화면에서 API 키를 먼저 저장해 주세요', false); return; }
         b.disabled = true; b.textContent = '만드는 중...';
         try {
           ta.value = await draftFeedback(key, r.content || '');
