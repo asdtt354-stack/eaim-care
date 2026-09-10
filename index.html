@@ -6,95 +6,136 @@
 <title>에임 케어</title>
 <style>
   :root{
-    --paper:#f7f5f2; --ink:#2b2b2b; --ink-soft:#6b6560; --line:#e3ded7;
-    --mind:#c05a4e; --mind-bg:#fbf0ee;
-    --korean:#2f7a6b; --korean-bg:#ecf5f2;
+    --paper:#fdfaf6; --ink:#332f2b; --ink-soft:#7d7268; --line:#ece4d9;
+
+    --mind:#c9553f; --mind-deep:#a03f2d; --mind-bg:#fdf0ec; --mind-line:#f2d3c8;
+    --korean:#1f8a76; --korean-deep:#146d5c; --korean-bg:#e9f6f2; --korean-line:#bfe4d9;
+    --gold:#d9a441;
   }
   *{box-sizing:border-box}
   body{
-    margin:0; background:var(--paper); color:var(--ink);
+    margin:0; color:var(--ink);
+    background:
+      radial-gradient(1100px 420px at 12% -6%, #fdeee7 0%, transparent 60%),
+      radial-gradient(900px 380px at 92% 2%, #e6f4ef 0%, transparent 62%),
+      var(--paper);
     font-family:'Pretendard','Malgun Gothic',sans-serif; line-height:1.6;
   }
-  .wrap{max-width:860px;margin:0 auto;padding:48px 20px 80px}
+  .wrap{max-width:900px;margin:0 auto;padding:44px 20px 90px}
 
+  /* 머리말 */
   header.top{display:flex;justify-content:space-between;align-items:flex-end;
-    padding-bottom:20px;border-bottom:1px solid var(--line);margin-bottom:40px;flex-wrap:wrap;gap:12px}
-  header.top h1{margin:0;font-size:1.8rem;letter-spacing:-.02em}
-  header.top p{margin:4px 0 0;color:var(--ink-soft);font-size:.92rem}
-  #who{font-size:.9rem;color:var(--ink-soft)}
+    gap:14px;margin-bottom:38px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand .mark{width:52px;height:52px;border-radius:16px;flex:0 0 auto;
+    background:linear-gradient(135deg,var(--mind) 0%,var(--gold) 52%,var(--korean) 100%);
+    display:flex;align-items:center;justify-content:center;font-size:1.5rem;
+    box-shadow:0 8px 20px rgba(201,85,63,.22)}
+  header.top h1{margin:0;font-size:1.9rem;letter-spacing:-.03em}
+  header.top .tag{margin:3px 0 0;color:var(--ink-soft);font-size:.92rem}
+  #who{font-size:.88rem;color:var(--ink-soft)}
 
   button{font-family:inherit;cursor:pointer}
-  .btn{padding:12px 20px;border:0;border-radius:10px;background:var(--ink);color:#fff;
-    font-weight:700;font-size:.98rem}
-  .btn.ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line)}
-  .btn.small{padding:8px 14px;font-size:.86rem}
-  .btn:disabled{opacity:.45;cursor:default}
+  .btn{padding:12px 20px;border:0;border-radius:11px;color:#fff;font-weight:700;font-size:.98rem;
+    background:var(--ink);transition:transform .12s, box-shadow .12s}
+  .btn:hover:not(:disabled){transform:translateY(-1px)}
+  .btn.mind{background:linear-gradient(135deg,var(--mind),var(--mind-deep));
+    box-shadow:0 6px 16px rgba(201,85,63,.26)}
+  .btn.korean{background:linear-gradient(135deg,var(--korean),var(--korean-deep));
+    box-shadow:0 6px 16px rgba(31,138,118,.26)}
+  .btn.ghost{background:#fff;color:var(--ink-soft);border:1.5px solid var(--line);box-shadow:none}
+  .btn.small{padding:8px 14px;font-size:.85rem;border-radius:9px}
+  .btn:disabled{opacity:.42;cursor:default;transform:none}
 
-  /* 앱 고르기 */
-  .track{margin-bottom:38px}
-  .track h2{font-size:1.05rem;margin:0 0 4px;display:flex;align-items:center;gap:9px}
-  .track .dot{width:9px;height:9px;border-radius:50%}
-  .track .hint{margin:0 0 16px;color:var(--ink-soft);font-size:.88rem}
-  .apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
-  .app{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:18px 14px;
-    text-align:left;display:flex;align-items:center;gap:11px;font-size:.98rem;font-weight:600;
-    color:var(--ink);transition:border-color .15s, background .15s}
-  .app .ico{font-size:1.5rem;line-height:1}
-  .app[aria-pressed="true"]{background:#fff;border-width:2px}
-  .track.mind .app[aria-pressed="true"]{border-color:var(--mind);background:var(--mind-bg)}
-  .track.korean .app[aria-pressed="true"]{border-color:var(--korean);background:var(--korean-bg)}
+  /* 카드 공통 */
+  .panel{background:#fff;border:1px solid var(--line);border-radius:20px;padding:26px;
+    margin-bottom:26px;box-shadow:0 4px 18px rgba(120,90,60,.06)}
+  .panel h3{margin:0 0 6px;font-size:1.08rem;display:flex;align-items:center;gap:8px}
 
-  /* 방 만들기 */
-  .panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:26px;margin-bottom:28px}
-  .panel h3{margin:0 0 18px;font-size:1.1rem}
-  label{display:block;font-weight:700;font-size:.86rem;margin:0 0 6px}
-  input[type=text],input[type=number],select{
-    width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:9px;
-    font-size:1rem;font-family:inherit;background:#fff}
-  input:focus,select:focus{outline:none;border-color:var(--ink)}
+  label{display:block;font-weight:700;font-size:.85rem;margin:0 0 6px}
+  input[type=text],input[type=number],input[type=password],select{
+    width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:11px;
+    font-size:1rem;font-family:inherit;background:#fffdfa}
+  input:focus,select:focus{outline:none;border-color:var(--gold);background:#fff}
   .field{margin-bottom:16px}
   .two{display:flex;gap:14px}.two>*{flex:1}
 
+  /* 트랙 */
+  .track{margin-bottom:34px}
+  .track .band{display:flex;align-items:center;gap:11px;margin-bottom:5px}
+  .track .chip{padding:5px 13px;border-radius:999px;font-size:.85rem;font-weight:800;color:#fff}
+  .track.mind .chip{background:linear-gradient(135deg,var(--mind),var(--mind-deep))}
+  .track.korean .chip{background:linear-gradient(135deg,var(--korean),var(--korean-deep))}
+  .track .band .rule{flex:1;height:1px}
+  .track.mind .band .rule{background:linear-gradient(90deg,var(--mind-line),transparent)}
+  .track.korean .band .rule{background:linear-gradient(90deg,var(--korean-line),transparent)}
+  .track .hint{margin:0 0 16px;color:var(--ink-soft);font-size:.89rem}
+
+  .apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:12px}
+  .app{border-radius:16px;padding:17px 15px;text-align:left;display:flex;align-items:center;gap:12px;
+    font-size:.99rem;font-weight:700;color:var(--ink);border:1.5px solid var(--line);
+    background:#fff;transition:all .15s;position:relative}
+  .app .ico{font-size:1.6rem;line-height:1;flex:0 0 auto}
+  .app:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 18px rgba(120,90,60,.10)}
+  .track.mind .app:hover:not(:disabled){border-color:var(--mind-line)}
+  .track.korean .app:hover:not(:disabled){border-color:var(--korean-line)}
+  .track.mind .app[aria-pressed="true"]{background:var(--mind-bg);border-color:var(--mind);border-width:2px}
+  .track.korean .app[aria-pressed="true"]{background:var(--korean-bg);border-color:var(--korean);border-width:2px}
+  .app:disabled{opacity:.5;cursor:default;background:#faf7f3}
+  .app .soon{position:absolute;top:-8px;right:9px;background:var(--gold);color:#fff;
+    font-size:.68rem;font-weight:800;padding:2px 8px;border-radius:999px;letter-spacing:.02em}
+
   /* 방 목록 */
-  .room{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:14px}
+  .room{background:#fff;border:1px solid var(--line);border-radius:18px;padding:21px;margin-bottom:14px;
+    border-left:5px solid var(--line);box-shadow:0 3px 14px rgba(120,90,60,.05)}
+  .room.t-mind{border-left-color:var(--mind)}
+  .room.t-korean{border-left-color:var(--korean)}
   .room .head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
-  .room .title{font-weight:700;font-size:1.05rem;margin:0}
-  .room .meta{color:var(--ink-soft);font-size:.85rem;margin:3px 0 0}
-  .code{font-size:1.5rem;font-weight:800;letter-spacing:.14em;margin:14px 0 0}
-  .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .room .title{font-weight:800;font-size:1.06rem;margin:0}
+  .room .meta{color:var(--ink-soft);font-size:.84rem;margin:3px 0 0}
+  .code{font-size:1.55rem;font-weight:800;letter-spacing:.16em;margin:0;font-family:'Courier New',monospace}
+  .room.t-mind .code{color:var(--mind-deep)}
+  .room.t-korean .code{color:var(--korean-deep)}
+  .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
   .closed{opacity:.55}
   .qr{margin-top:16px;display:none;text-align:center}
-  .qr img{border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px}
-  .qr .link{font-size:.8rem;color:var(--ink-soft);word-break:break-all;margin-top:8px}
+  .qr img{border:1px solid var(--line);border-radius:12px;background:#fff;padding:9px}
+  .qr .link{font-size:.79rem;color:var(--ink-soft);word-break:break-all;margin-top:8px}
 
-  .works{margin-top:16px;display:none;border-top:1px solid var(--line);padding-top:16px}
+  .works{margin-top:16px;display:none;border-top:1px solid var(--line);padding-top:15px}
   .work{padding:12px 0;border-bottom:1px dashed var(--line)}
   .work:last-child{border-bottom:0}
-  .work .stu{font-weight:700;font-size:.9rem}
-  .work .body{white-space:pre-wrap;font-size:.92rem;margin-top:5px;color:#3d3833}
+  .work .stu{font-weight:700;font-size:.89rem;color:var(--ink-soft)}
+  .work .body{white-space:pre-wrap;font-size:.94rem;margin-top:5px}
 
-  .empty{color:var(--ink-soft);font-size:.92rem;padding:20px 0}
-  .gate{text-align:center;padding:70px 20px}
+  .empty{color:var(--ink-soft);font-size:.92rem;padding:22px 0;text-align:center}
+  .gate{text-align:center;padding:64px 20px}
+  .gate .big{font-size:2.6rem;margin-bottom:14px}
   .gate p{color:var(--ink-soft);margin-bottom:26px}
   .hidden{display:none !important}
-  @media(max-width:520px){.two{flex-direction:column;gap:16px}}
+  .sectitle{font-size:1.1rem;margin:36px 0 14px;display:flex;align-items:center;gap:8px}
+  @media(max-width:520px){.two{flex-direction:column;gap:16px}.wrap{padding-top:30px}}
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <header class="top">
-    <div>
-      <h1>에임 케어</h1>
-      <p>마음 트랙과 한국어 트랙 수업방을 여는 곳</p>
+    <div class="brand">
+      <div class="mark">🌱</div>
+      <div>
+        <h1>에임 케어</h1>
+        <p class="tag">마음 트랙과 한국어 트랙 수업방을 여는 곳</p>
+      </div>
     </div>
     <div id="who"></div>
   </header>
 
   <!-- 로그인 전 -->
   <section id="gate" class="gate">
+    <div class="big">🌱</div>
     <p>수업방을 만들려면 선생님 구글 계정으로 들어와 주세요.<br>학생은 선생님이 나눠준 QR이나 링크로 바로 들어갑니다.</p>
-    <button class="btn" id="loginBtn">구글 계정으로 시작하기</button>
+    <button class="btn korean" id="loginBtn">구글 계정으로 시작하기</button>
   </section>
 
   <!-- 로그인 후 -->
@@ -111,7 +152,7 @@
           <input type="password" id="apiKey" placeholder="AIza..." style="width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:9px;font-size:1rem;font-family:inherit">
         </div>
         <div style="flex:0 0 auto;display:flex;gap:8px;align-items:flex-start">
-          <button class="btn" id="saveKey">저장</button>
+          <button class="btn mind" id="saveKey">저장</button>
           <button class="btn ghost" id="showKey">보기</button>
         </div>
       </div>
@@ -122,19 +163,19 @@
     </section>
 
     <div class="track mind">
-      <h2><span class="dot" style="background:var(--mind)"></span>마음 트랙</h2>
-      <p class="hint">감정과 가치를 다루는 다섯 개. 학생 글은 행발 참고용으로 모입니다.</p>
+      <div class="band"><span class="chip">마음 트랙</span><span class="rule"></span></div>
+      <p class="hint">감정과 가치를 다루는 다섯 개. 학생 글은 행발 참고용으로만 모이고, 답장은 돌려주지 않습니다.</p>
       <div class="apps" id="apps-mind"></div>
     </div>
 
     <div class="track korean">
-      <h2><span class="dot" style="background:var(--korean)"></span>한국어 트랙</h2>
+      <div class="band"><span class="chip">한국어 트랙</span><span class="rule"></span></div>
       <p class="hint">한국어를 배우는 학생용. 개인별로 진도가 쌓입니다. 수업 중에는 <a href="korean-live.html" style="color:var(--korean);font-weight:700">실시간 화면</a>에서 답장을 보내세요.</p>
       <div class="apps" id="apps-korean"></div>
     </div>
 
     <section class="panel" id="makePanel">
-      <h3>수업방 만들기</h3>
+      <h3>🏫 수업방 만들기</h3>
       <div class="field">
         <label for="roomTitle">수업 이름</label>
         <input type="text" id="roomTitle" placeholder="앱을 먼저 골라주세요" disabled>
@@ -153,10 +194,10 @@
           <input type="number" id="groupSize" value="4" min="2" max="10">
         </div>
       </div>
-      <button class="btn" id="makeBtn" disabled>수업방 열기</button>
+      <button class="btn korean" id="makeBtn" disabled>수업방 열기</button>
     </section>
 
-    <h3 style="font-size:1.1rem;margin:34px 0 14px">내 수업방</h3>
+    <h3 class="sectitle">📋 내 수업방</h3>
     <div id="rooms"><p class="empty">아직 만든 수업방이 없습니다.</p></div>
 
   </main>
@@ -171,6 +212,10 @@ import {
 
 let picked = null;
 
+/* 교실 연동이 끝난 앱만 방을 만들 수 있습니다.
+   마음 트랙 5개는 앱 자체를 손보는 중이라 아직 잠가 둡니다. */
+const READY = new Set(['hangeul', 'korean-sentence']);
+
 /* ── 앱 카드 그리기 ── */
 function drawApps() {
   const boxes = { mind: document.getElementById('apps-mind'), korean: document.getElementById('apps-korean') };
@@ -180,8 +225,11 @@ function drawApps() {
     b.type = 'button';
     b.setAttribute('aria-pressed', 'false');
     b.dataset.key = key;
-    b.innerHTML = `<span class="ico">${meta.icon}</span><span>${meta.name}</span>`;
-    b.addEventListener('click', () => pick(key, meta));
+    const ready = READY.has(key);
+    b.innerHTML = `<span class="ico">${meta.icon}</span><span>${meta.name}</span>` +
+                  (ready ? '' : '<span class="soon">준비 중</span>');
+    b.disabled = !ready;
+    if (ready) b.addEventListener('click', () => pick(key, meta));
     boxes[meta.track].appendChild(b);
   });
 }
@@ -260,7 +308,7 @@ async function refreshRooms() {
   rooms.forEach(r => {
     const meta = CARE_APPS[r.app] || { name: r.app, icon: '📘', track: 'mind' };
     const el = document.createElement('div');
-    el.className = 'room' + (r.isOpen ? '' : ' closed');
+    el.className = 'room t-' + (meta.track || 'mind') + (r.isOpen ? '' : ' closed');
     el.innerHTML = `
       <div class="head">
         <div>
