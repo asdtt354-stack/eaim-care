@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="color-scheme" content="light">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EAIM 한국어 문장 놀이터</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -46,6 +47,11 @@
         .playing i { animation: pulse 1s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
     </style>
+    <style>
+      /* 학생 폰이 다크 모드여도 앱은 항상 밝게 보이도록 고정 */
+      :root{color-scheme:light}
+      html,body{background-color:#fff}
+    </style>
 </head>
 <body class="bg-orange-50 text-gray-800 min-h-screen pb-20 select-none">
 
@@ -79,7 +85,7 @@
                 4단계<br><span class="text-[10px] font-sans font-normal opacity-80">글쓰기</span>
             </button>
             <button onclick="switchTab(5)" id="btn-tab-5" class="tab-btn inactive flex-1 min-w-[60px] py-2 rounded-xl font-bold text-lg shadow-sm font-title leading-tight border-2 border-teal-200 bg-white text-teal-600">
-                5단계<br><span class="text-[10px] font-sans font-normal opacity-80">AI완성</span>
+                5단계<br><span class="text-[10px] font-sans font-normal opacity-80">보내기</span>
             </button>
         </div>
 
@@ -152,7 +158,8 @@
                 <div class="bg-gray-800 p-1.5 rounded-3xl shadow-xl mt-8">
                     <div class="bg-white rounded-[1.2rem] p-6 text-center border-4 border-gray-800">
                         <p class="text-sm text-gray-400 mb-2 font-title bg-gray-100 inline-block px-3 py-1 rounded-full">완성된 문장</p>
-                        <p id="l1-result" class="font-hand text-3xl mb-6 text-gray-900 font-bold tracking-tight break-keep leading-relaxed">...</p>
+                        <p id="l1-result" class="font-hand text-3xl mb-2 text-gray-900 font-bold tracking-tight break-keep leading-relaxed">...</p>
+                        <p id="l1-missing" class="text-sm font-bold text-orange-500 mb-4 min-h-[1.4em]"></p>
                         
                         <button onclick="speakText(document.getElementById('l1-result').innerText, this)" class="btn-speak w-full bg-gradient-to-r from-orange-400 to-red-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-3 transition hover:brightness-110">
                             <i class="fa-solid fa-volume-high text-2xl"></i> 소리 듣기
@@ -396,20 +403,30 @@
         }
 
         function updateL1() {
-            const s = document.getElementById('l1-who').value || '';
-            const o = document.getElementById('l1-obj').value;
-            const v = document.getElementById('l1-verb').value || '';
-            
+            const s = document.getElementById('l1-who').value.trim();
+            const o = document.getElementById('l1-obj').value.trim();
+            const v = document.getElementById('l1-verb').value.trim();
+
+            const missing = [];
             let sentence = "";
-            if(s) sentence += `${s}${josas.sub} `;
-            else sentence += "(누가) ";
-            
-            if(o) sentence += `${o}${josas.obj} `;
-            
-            if(v) sentence += `${v}`;
-            else sentence += "(해요)";
-            
+
+            if (s) sentence += `${s}${josas.sub} `;
+            else { sentence += "(누가) "; missing.push('누가'); }
+
+            if (o) sentence += `${o}${josas.obj} `;
+
+            if (v) sentence += `${v}`;
+            else { sentence += "(해요)"; missing.push('무엇을 해요'); }
+
             document.getElementById('l1-result').innerText = sentence.trim() + ".";
+
+            const miss = document.getElementById('l1-missing');
+            if (miss) {
+                miss.innerText = missing.length
+                    ? `아직 못 쓴 곳: ${missing.join(', ')}`
+                    : '';
+            }
+
             document.getElementById('l2-a').value = sentence.trim() + ".";
             updateL2();
         }
@@ -431,10 +448,13 @@
         }
 
         function updateL2() {
-            const front = document.getElementById('l2-a').value;
-            const back = document.getElementById('l2-b').value || '(뒤 문장)';
-            const full = `${front} ${currentConn} ${back}`;
-            document.getElementById('l2-result').innerText = full + ".";
+            const front = document.getElementById('l2-a').value.trim();
+            const back = document.getElementById('l2-b').value.trim();
+
+            // 뒤 문장을 안 쓰면 한 문장으로 둡니다. (예전에는 "(뒤 문장)"이 그대로 남았어요)
+            const full = back ? `${front} ${currentConn} ${back}` : front;
+
+            document.getElementById('l2-result').innerText = back ? full + "." : full;
             document.getElementById('l3-base').value = full;
             updateL3();
         }
@@ -463,7 +483,18 @@
         // --- 저장 및 Step 4 이동 ---
         function addToStory() {
             const sent = document.getElementById('l3-result').innerText;
-            if(!sent || sent.includes('...')) return alert("문장을 완성해주세요!");
+            if (!sent || sent.includes('...')) return alert("문장을 완성해주세요!");
+
+            // 아직 안 채운 자리가 남아 있으면 저장하지 않습니다.
+            const holes = [];
+            if (sent.includes('(누가)')) holes.push('누가');
+            if (sent.includes('(해요)')) holes.push('무엇을 해요');
+            if (sent.includes('(뒤 문장)')) holes.push('뒤 문장');
+            if (holes.length) {
+                alert(`아직 못 쓴 곳이 있어요.\n\n· ${holes.join('\n· ')}\n\n1단계로 가서 채워주세요!`);
+                switchTab(1);
+                return;
+            }
             
             sentenceHistory.push(sent);
             updateDraft();

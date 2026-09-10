@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="color-scheme" content="light">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EAIM 한글 놀이터 (왕글씨 버전)</title>
     
@@ -60,6 +61,11 @@
             100% { opacity: 1; transform: scale(1); }
         }
         .animate-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    </style>
+    <style>
+      /* 학생 폰이 다크 모드여도 앱은 항상 밝게 보이도록 고정 */
+      :root{color-scheme:light}
+      html,body{background-color:#fff}
     </style>
 </head>
 <body class="bg-fuchsia-50 min-h-screen text-lg">
