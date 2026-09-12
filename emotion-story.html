@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="light">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>감정 스토리 — 오늘 내 마음의 흐름</title>
+<style>
+  :root{
+    --paper:#fdf9f6; --ink:#332f2b; --soft:#7d7268; --line:#ece2da;
+    --main:#c9553f; --deep:#a03f2d; --bg:#fdf0ec; --mline:#f2d3c8;
+    --gold:#d9a441; --up:#c9553f; --down:#4a7f95;
+  }
+  *{box-sizing:border-box}
+  html,body{background:var(--paper)}
+  body{margin:0;color:var(--ink);line-height:1.6;padding:24px 16px 90px;
+    font-family:'Pretendard','Malgun Gothic',sans-serif}
+  .wrap{max-width:640px;margin:0 auto}
+
+  header.top h1{margin:0;font-size:1.6rem;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+  header.top .bar{width:44px;height:4px;border-radius:99px;margin-top:10px;
+    background:linear-gradient(90deg,var(--main),var(--gold))}
+  header.top p{margin:9px 0 26px;color:var(--soft);font-size:.92rem}
+
+  button{font-family:inherit;cursor:pointer}
+  .card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:16px;
+    box-shadow:0 3px 14px rgba(120,80,60,.05)}
+  .card h3{margin:0 0 5px;font-size:1.05rem;display:flex;align-items:center;gap:9px}
+  .card h3 .n{width:23px;height:23px;border-radius:7px;background:var(--main);color:#fff;
+    font-size:.78rem;display:flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 auto}
+  .card .lead{margin:0 0 18px;color:var(--soft);font-size:.88rem}
+
+  /* 곡선 */
+  .chart{background:#fffdfb;border:1px solid var(--line);border-radius:14px;padding:14px 8px 8px}
+  svg{width:100%;height:190px;display:block}
+  .axis{stroke:var(--line);stroke-width:1}
+  .zero{stroke:#d9cec4;stroke-width:1.5;stroke-dasharray:4 4}
+  .curve{fill:none;stroke:var(--main);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+  .dot{fill:#fff;stroke:var(--main);stroke-width:3}
+  .stagelab{font-size:12px;fill:var(--soft);font-weight:700}
+  .wordlab{font-size:12px;fill:var(--deep);font-weight:800}
+
+  /* 단계 4칸 */
+  .stages{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:16px}
+  .stage{border:1.5px solid var(--line);border-radius:13px;padding:12px 8px;background:#fff;text-align:center}
+  .stage.on{border-color:var(--main);background:var(--bg)}
+  .stage .t{font-weight:800;font-size:1rem}
+  .stage .w{font-size:.78rem;color:var(--soft);margin-top:3px;min-height:1.1em}
+  .stage .lv{font-size:.74rem;color:var(--main);font-weight:800;margin-top:2px}
+
+  /* 높낮이 슬라이더 */
+  .picker{margin-top:18px;border-top:1px dashed var(--line);padding-top:18px}
+  .picker .who{font-weight:800;margin:0 0 12px;font-size:1rem}
+  .levels{display:flex;gap:6px}
+  .levels button{flex:1;padding:11px 2px;border:1.5px solid var(--line);border-radius:10px;background:#fff;
+    font-weight:800;font-size:.9rem;color:var(--soft)}
+  .levels button.on{background:var(--main);border-color:var(--main);color:#fff}
+  .hintrow{display:flex;justify-content:space-between;font-size:.74rem;color:var(--soft);margin-top:6px}
+
+  .words{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;max-height:168px;overflow-y:auto}
+  .words button{padding:7px 12px;border:1.5px solid var(--line);border-radius:99px;background:#fff;
+    font-size:.86rem;color:var(--ink)}
+  .words button.on{background:var(--deep);border-color:var(--deep);color:#fff;font-weight:700}
+  .wsearch{width:100%;padding:10px 13px;border:1.5px solid var(--line);border-radius:10px;
+    font-size:.95rem;font-family:inherit;margin-top:12px;background:#fffdfb}
+
+  label{display:block;font-weight:700;font-size:.85rem;margin:15px 0 6px;color:var(--soft)}
+  textarea,input[type=text]{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:11px;
+    font-size:1rem;font-family:inherit;background:#fffdfb;resize:vertical}
+  textarea:focus,input:focus{outline:none;border-color:var(--main);background:#fff}
+
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  .chips button{padding:6px 11px;border:1.5px solid var(--mline);border-radius:99px;background:var(--bg);
+    font-size:.83rem;color:var(--deep);font-weight:700}
+
+  .go{width:100%;padding:16px;border:0;border-radius:13px;color:#fff;font-size:1.05rem;font-weight:800;
+    background:linear-gradient(135deg,var(--main),var(--deep));box-shadow:0 6px 16px rgba(201,85,63,.26)}
+  .go:disabled{opacity:.45;box-shadow:none;cursor:default}
+  .go.sub{background:#fff;color:var(--deep);border:1.5px solid var(--mline);box-shadow:none}
+
+  .sent{background:var(--bg);border:1.5px solid var(--mline);border-radius:14px;padding:22px;text-align:center}
+  .sent .big{font-size:2.2rem}
+  .hidden{display:none !important}
+  .count{font-size:.8rem;color:var(--soft);text-align:right;margin:6px 0 0}
+  @media(max-width:430px){.stages{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>🎢 감정 스토리</h1>
+    <div class="bar"></div>
+    <p id="sub">오늘 내 마음이 어떻게 움직였는지 그려보고, 글로 써봐요</p>
+  </header>
+
+  <!-- 1. 곡선 -->
+  <section class="card">
+    <h3><span class="n">1</span>오늘의 마음 곡선</h3>
+    <p class="lead">기·승·전·결 네 칸을 눌러서 그때 마음이 얼마나 올라갔는지 정하고, 감정 낱말을 하나씩 붙여요.</p>
+
+    <div class="chart">
+      <svg id="chart" viewBox="0 0 400 190" preserveAspectRatio="none" aria-label="감정 곡선"></svg>
+    </div>
+
+    <div class="stages" id="stages"></div>
+
+    <div class="picker hidden" id="picker">
+      <p class="who" id="pickerWho"></p>
+      <div class="levels" id="levels"></div>
+      <div class="hintrow"><span>많이 가라앉음</span><span>보통</span><span>많이 올라감</span></div>
+      <input type="text" class="wsearch" id="wsearch" placeholder="감정 낱말 찾기 (예: 뿌듯)">
+      <div class="words" id="words"></div>
+    </div>
+  </section>
+
+  <!-- 2. 이유 -->
+  <section class="card">
+    <h3><span class="n">2</span>왜 그랬을까</h3>
+    <p class="lead">각 단계에 그런 마음이 든 까닭을 한 줄씩 써요.</p>
+    <div id="reasons"></div>
+  </section>
+
+  <!-- 3. 글 -->
+  <section class="card">
+    <h3><span class="n">3</span>이야기로 쓰기</h3>
+    <p class="lead">위에 쓴 재료를 눌러 넣으면서 하나의 글로 이어봐요.</p>
+    <div class="chips" id="chips"></div>
+    <textarea id="draft" rows="9" placeholder="오늘 아침에는..."></textarea>
+    <p class="count" id="count">0자</p>
+  </section>
+
+  <button class="go" id="sendBtn" onclick="send()">선생님께 보내기</button>
+
+  <div class="card sent hidden" id="sentBox">
+    <div class="big">🌱</div>
+    <p style="font-weight:800;margin:8px 0 4px">잘 보냈어요</p>
+    <p style="color:var(--soft);font-size:.9rem;margin:0">오늘 마음을 들여다본 것만으로 충분해요.</p>
+  </div>
+
+</div>
+
+<script>
+  const STAGES = ['기', '승', '전', '결'];
+  const STAGE_HINT = ['시작', '이어짐', '고비', '마무리'];
+  const WORDS = ['행복한','기쁜','신나는','즐거운','짜릿한','황홀한','감동적인','뿌듯한','자랑스러운','자신만만한','통쾌한',
+    '감사한','사랑스러운','설레는','기대되는','상쾌한','후련한','자유로운','편안한','포근한','든든한',
+    '평온한','차분한','다정한','친근한','신기한','궁금한','놀라운','흥미로운','재미있는',
+    '슬픈','우울한','속상한','서운한','실망한','허전한','쓸쓸한','외로운','비참한','괴로운','무기력한','지친',
+    '화가 난','짜증나는','답답한','억울한','분한','얄미운','미운','불쾌한','성가신','질투나는',
+    '무서운','두려운','겁나는','불안한','긴장되는','조마조마한','당황스러운','혼란스러운','막막한',
+    '부끄러운','창피한','미안한','죄송한','후회되는','지루한','심심한','귀찮은','피곤한','멍한'];
+
+  // level: -3 ~ +3 (null = 아직 안 정함), word: 감정 낱말
+  const data = STAGES.map(() => ({ level: null, word: '', reason: '' }));
+  let active = null;
+
+  /* ── 곡선 그리기 ── */
+  function drawChart() {
+    const W = 400, H = 190, padX = 34, padY = 26;
+    const x = i => padX + i * ((W - padX * 2) / 3);
+    const y = lv => (H / 2) - (lv / 3) * ((H - padY * 2) / 2);
+
+    let svg = `<line class="zero" x1="${padX - 14}" y1="${H / 2}" x2="${W - padX + 14}" y2="${H / 2}"/>`;
+
+    const pts = data.map((d, i) => (d.level === null ? null : [x(i), y(d.level)]));
+    const known = pts.filter(Boolean);
+    if (known.length > 1) {
+      const path = pts.map((p, i) => p ? `${i && pts.slice(0, i).some(Boolean) ? 'L' : 'M'}${p[0]},${p[1]}` : '').join(' ');
+      svg += `<path class="curve" d="${path.trim()}"/>`;
+    }
+
+    data.forEach((d, i) => {
+      svg += `<text class="stagelab" x="${x(i)}" y="${H - 6}" text-anchor="middle">${STAGES[i]}</text>`;
+      if (d.level !== null) {
+        svg += `<circle class="dot" cx="${x(i)}" cy="${y(d.level)}" r="6"/>`;
+        if (d.word) {
+          const above = d.level >= 0;
+          svg += `<text class="wordlab" x="${x(i)}" y="${y(d.level) + (above ? -14 : 22)}" text-anchor="middle">${d.word}</text>`;
+        }
+      }
+    });
+    document.getElementById('chart').innerHTML = svg;
+  }
+
+  /* ── 네 칸 ── */
+  function drawStages() {
+    document.getElementById('stages').innerHTML = data.map((d, i) => `
+      <button class="stage ${active === i ? 'on' : ''}" onclick="openPicker(${i})">
+        <div class="t">${STAGES[i]}</div>
+        <div class="w">${d.word || STAGE_HINT[i]}</div>
+        <div class="lv">${d.level === null ? '' : (d.level > 0 ? '+' : '') + d.level}</div>
+      </button>`).join('');
+  }
+
+  function openPicker(i) {
+    active = i;
+    document.getElementById('picker').classList.remove('hidden');
+    document.getElementById('pickerWho').innerText = `${STAGES[i]} (${STAGE_HINT[i]}) — 이때 마음은?`;
+    drawLevels(); drawWords(document.getElementById('wsearch').value);
+    drawStages();
+  }
+
+  function drawLevels() {
+    const d = data[active];
+    document.getElementById('levels').innerHTML = [-3, -2, -1, 0, 1, 2, 3].map(v =>
+      `<button class="${d.level === v ? 'on' : ''}" onclick="setLevel(${v})">${v > 0 ? '+' + v : v}</button>`).join('');
+  }
+
+  function setLevel(v) {
+    data[active].level = v;
+    drawLevels(); drawStages(); drawChart(); refresh();
+  }
+
+  function drawWords(filter) {
+    const d = data[active];
+    const list = filter ? WORDS.filter(w => w.includes(filter.trim())) : WORDS;
+    document.getElementById('words').innerHTML = list.map(w =>
+      `<button class="${d.word === w ? 'on' : ''}" onclick="setWord('${w}')">${w}</button>`).join('')
+      || '<p style="color:var(--soft);font-size:.87rem">그런 낱말은 없어요. 다르게 찾아보세요.</p>';
+  }
+
+  document.getElementById('wsearch').addEventListener('input', e => {
+    if (active !== null) drawWords(e.target.value);
+  });
+
+  function setWord(w) {
+    data[active].word = (data[active].word === w) ? '' : w;
+    drawWords(document.getElementById('wsearch').value);
+    drawStages(); drawChart(); drawReasons(); refresh();
+  }
+
+  /* ── 이유 ── */
+  function drawReasons() {
+    document.getElementById('reasons').innerHTML = data.map((d, i) => `
+      <label for="r${i}">${STAGES[i]} ${d.word ? '· ' + d.word : ''}</label>
+      <input type="text" id="r${i}" value="${d.reason.replace(/"/g, '&quot;')}"
+             placeholder="왜 그런 마음이 들었나요?" oninput="setReason(${i}, this.value)">`).join('');
+  }
+  function setReason(i, v) { data[i].reason = v; drawChips(); refresh(); }
+
+  /* ── 재료 상자 ── */
+  function drawChips() {
+    const items = [];
+    data.forEach((d, i) => {
+      if (d.word) items.push(`${STAGES[i]}에는 ${d.word} 마음이었다.`);
+      if (d.reason.trim()) items.push(d.reason.trim());
+    });
+    document.getElementById('chips').innerHTML = items.map(t =>
+      `<button onclick="insert(${JSON.stringify(t).replace(/"/g, '&quot;')})">${t.length > 18 ? t.slice(0, 18) + '…' : t}</button>`).join('');
+  }
+
+  function insert(text) {
+    const ta = document.getElementById('draft');
+    const at = ta.selectionStart ?? ta.value.length;
+    ta.value = ta.value.slice(0, at) + (at && ta.value[at - 1] !== ' ' ? ' ' : '') + text + ' ' + ta.value.slice(at);
+    ta.focus(); refresh();
+  }
+
+  document.getElementById('draft').addEventListener('input', refresh);
+
+  function refresh() {
+    const n = document.getElementById('draft').value.trim().length;
+    document.getElementById('count').innerText = n + '자';
+    const ready = data.every(d => d.level !== null) && n >= 20;
+    document.getElementById('sendBtn').disabled = !ready;
+    document.getElementById('sendBtn').innerText = ready ? '선생님께 보내기'
+      : (data.some(d => d.level === null) ? '네 칸의 높낮이를 먼저 정해주세요' : '글을 20자 이상 써주세요');
+  }
+
+  /* ── 제출 ── */
+  async function send() {
+    const text = document.getElementById('draft').value.trim();
+    if (!window.EAIM_STUDENT) {
+      alert('수업방에 들어와 있지 않아요.\n선생님이 주신 QR이나 링크로 들어와 주세요.');
+      return;
+    }
+    const btn = document.getElementById('sendBtn');
+    btn.disabled = true; btn.innerText = '보내는 중...';
+
+    const curve = data.map((d, i) => ({ stage: STAGES[i], level: d.level, word: d.word, reason: d.reason }));
+    const line = curve.map(c => `${c.stage}(${c.level > 0 ? '+' : ''}${c.level}) ${c.word || ''}`).join(' → ');
+
+    await window.EAIM_SAVE_WORK({
+      kind: '감정 스토리',
+      title: line,
+      content: text,
+      extra: { curve }
+    });
+
+    document.getElementById('sentBox').classList.remove('hidden');
+    btn.classList.add('hidden');
+    document.getElementById('sentBox').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  drawChart(); drawStages(); drawReasons(); drawChips(); refresh();
+</script>
+
+<!-- ══ EAIM 교실 연동 ══ -->
+<script>
+  window.EAIM_APP_TYPE = 'emotion-story';
+  window.EAIM_TRACK    = 'mind';
+</script>
+<script type="module">
+  import { mountStudentGate, saveWork, toast } from './eaim-classroom-core.js';
+
+  window.EAIM_SAVE_WORK = async (payload) => {
+    try {
+      const id = await saveWork(payload);
+      if (id) toast('잘 보냈어요');
+    } catch (e) { console.error(e); toast('보내지 못했어요', false); }
+  };
+
+  mountStudentGate({
+    onReady: (student) => {
+      if (!student) return;
+      const sub = document.getElementById('sub');
+      if (sub) sub.textContent = `${student.roomTitle} · ${student.className || ''} ${student.number}번`;
+    }
+  });
+</script>
+</body>
+</html>
