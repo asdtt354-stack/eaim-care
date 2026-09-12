@@ -250,7 +250,7 @@ export async function updateMyWork(workId, patch) {
 }
 
 /* ══════════════════════════════════════════════════════════
-   실시간 피드백 (한국어 트랙 전용)
+   실시간 피드백
 
    학생이 보낸 글은 koreanProgress 문서 한 개로 쌓이고,
    선생님 답장은 그 문서에 필드로 붙습니다.
@@ -259,24 +259,27 @@ export async function updateMyWork(workId, patch) {
    학생이 고쳐서 다시 보내면 새 문서가 하나 더 생기므로,
    시간 순으로 보면 주고받은 기록이 그대로 남습니다.
 
-   ⚠️ 마음 트랙(reflections)에는 이 기능을 쓰지 않습니다.
-      가족·가치처럼 민감한 글은 돌려주지 않기로 했습니다.
+   ⚠️ 마음 트랙에서는 '마이 바이브 런웨이'만 이 기능을 씁니다.
+      옷·음악 기획이라 되물을수록 좋아지는 글이기 때문입니다.
+      가족·가치·감정을 다루는 나머지 앱은 답장을 돌려주지 않습니다.
    ══════════════════════════════════════════════════════════ */
 
 /** 교사: 방에 들어오는 학생 글을 실시간으로 받기 (수업 중 화면용) */
-export function listenWorks(roomId, cb) {
+export function listenWorks(roomId, cb, track = 'korean') {
   const uid = auth.currentUser.uid;
+  const col = track === 'korean' ? 'koreanProgress' : 'reflections';
   const q = query(
-    collection(db, `teachers/${uid}/rooms/${roomId}/koreanProgress`),
+    collection(db, `teachers/${uid}/rooms/${roomId}/${col}`),
     orderBy('createdAt', 'asc')
   );
   return onSnapshot(q, (snap) => cb(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
 }
 
 /** 교사: 글 하나에 답장 달기 */
-export async function sendFeedback(roomId, workId, text, source = 'teacher') {
+export async function sendFeedback(roomId, workId, text, source = 'teacher', track = 'korean') {
   const uid = auth.currentUser.uid;
-  await updateDoc(doc(db, `teachers/${uid}/rooms/${roomId}/koreanProgress/${workId}`), {
+  const col = track === 'korean' ? 'koreanProgress' : 'reflections';
+  await updateDoc(doc(db, `teachers/${uid}/rooms/${roomId}/${col}/${workId}`), {
     feedback: text,
     feedbackBy: source,
     feedbackAt: serverTimestamp(),

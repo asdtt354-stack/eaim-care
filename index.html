@@ -170,13 +170,13 @@
 
     <div class="track mind">
       <div class="band"><span class="chip">마음 트랙</span><span class="rule"></span></div>
-      <p class="hint">감정과 가치를 다루는 여섯 개. 학생 글은 행발 참고용으로만 모이고, 답장은 돌려주지 않습니다.</p>
+      <p class="hint">감정과 가치를 다루는 여섯 개. 학생 글은 행발 참고용으로 모입니다. 답장을 주고받는 건 마이 바이브 런웨이 하나뿐이에요 — <a href="live.html" style="color:var(--mind);font-weight:700">답장 화면</a>.</p>
       <div class="apps" id="apps-mind"></div>
     </div>
 
     <div class="track korean">
       <div class="band"><span class="chip">한국어 트랙</span><span class="rule"></span></div>
-      <p class="hint">한국어를 배우는 학생용. 개인별로 진도가 쌓입니다. 수업 중에는 <a href="korean-live.html" style="color:var(--korean);font-weight:700">실시간 화면</a>에서 답장을 보내세요.</p>
+      <p class="hint">한국어를 배우는 학생용. 개인별로 진도가 쌓입니다. 수업 중에는 <a href="live.html" style="color:var(--korean);font-weight:700">실시간 화면</a>에서 답장을 보내세요.</p>
       <div class="apps" id="apps-korean"></div>
     </div>
 
@@ -220,7 +220,7 @@ let picked = null;
 
 /* 교실 연동이 끝난 앱만 방을 만들 수 있습니다.
    마음 트랙 5개는 앱 자체를 손보는 중이라 아직 잠가 둡니다. */
-const READY = new Set(['hangeul', 'korean-sentence', 'life-action', 'emotion-story']);
+const READY = new Set(['hangeul', 'korean-sentence', 'life-action', 'emotion-story', 'vibe-runway']);
 
 /* ── 앱 카드 그리기 ── */
 function drawApps() {
@@ -327,7 +327,7 @@ async function refreshRooms() {
         <button class="btn small ghost" data-act="qr">QR 보기</button>
         <button class="btn small ghost" data-act="copy">링크 복사</button>
         <button class="btn small ghost" data-act="works">결과 보기</button>
-        ${meta.track === 'korean' ? '<a class="btn small ghost" style="text-decoration:none;display:inline-block" href="korean-live.html">실시간 화면</a>' : ''}
+        ${(meta.track === 'korean' || r.app === 'vibe-runway') ? '<a class="btn small ghost" style="text-decoration:none;display:inline-block" href="live.html">답장 화면</a>' : ''}
         <button class="btn small ghost" data-act="toggle">${r.isOpen ? '닫기' : '다시 열기'}</button>
       </div>
       <div class="qr"></div>

@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="color-scheme" content="light">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Vibe Runway - Pro Edition (Save Feature)</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        /* [1] 전체 디자인 */
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #121212;
+            color: white;
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        h1 {
+            color: #FF00FF; text-shadow: 0 0 15px #FF00FF;
+            font-style: italic; margin-bottom: 5px;
+        }
+
+        .subtitle { color: #aaa; margin-bottom: 30px; font-size: 0.9rem; }
+
+        /* [2] 레이아웃 */
+        .container {
+            display: flex; flex-wrap: wrap; gap: 40px;
+            justify-content: center; width: 100%; max-width: 1200px;
+        }
+
+        /* 컨트롤 패널 */
+        .control-panel {
+            background: #252525; padding: 25px; border-radius: 20px;
+            width: 340px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); height: fit-content;
+        }
+
+        .section-title {
+            color: #FFD700; border-bottom: 2px solid #444; padding-bottom: 5px;
+            margin-top: 30px; margin-bottom: 10px; font-weight: bold; font-size: 1.1rem;
+        }
+        .section-title:first-child { margin-top: 0; }
+
+        select, input[type="file"], input[type="text"], textarea {
+            width: 100%; padding: 10px; background: #333; border: 1px solid #555;
+            color: white; border-radius: 8px; margin-bottom: 10px;
+            box-sizing: border-box; font-family: 'Pretendard', sans-serif; font-size: 0.9rem;
+        }
+        
+        textarea { resize: vertical; line-height: 1.5; min-height: 70px; }
+
+        /* Suno 가이드 박스 */
+        .suno-guide {
+            background: #2c2c54; border: 1px dashed #706fd3; padding: 12px;
+            border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem; color: #d1ccc0; line-height: 1.6;
+        }
+        .suno-guide strong { color: #00FFFF; }
+        .keyword-tag { background: #40407a; padding: 2px 6px; border-radius: 4px; color: #fff; margin-right: 3px; font-size: 0.8rem; }
+
+        /* 버튼류 */
+        .pinterest-box { display: flex; gap: 5px; margin-bottom: 15px; }
+        .btn-pinterest { background: #E60023; color: white; border: none; border-radius: 8px; width: 80px; cursor: pointer; font-weight: bold; }
+        .btn-runway {
+            background: linear-gradient(90deg, #FF00FF, #00FFFF); border: none; color: #000;
+            font-weight: bold; padding: 15px; width: 100%; border-radius: 50px; font-size: 1.2rem;
+            cursor: pointer; margin-top: 10px; transition: transform 0.2s; box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+        }
+        .btn-runway:hover { transform: scale(1.05); }
+
+        .btn-report {
+            background: #4CAF50; color: white; border: none; padding: 15px; width: 100%;
+            border-radius: 10px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 20px;
+        }
+        .btn-report:hover { background: #45a049; }
+
+        .suno-link {
+            display: block; text-align: center; background: #444; color: #fff;
+            text-decoration: none; padding: 10px; border-radius: 5px; font-weight:bold; margin-bottom: 10px;
+        }
+        .suno-link:hover { background: #666; }
+
+        /* [3] 무대 디자인 */
+        .stage-box {
+            position: relative; width: 400px; height: 600px;
+            background: linear-gradient(to bottom, #000, #222); border: 4px solid #444; border-radius: 20px;
+            overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); perspective: 800px;
+        }
+
+        .spotlight {
+            position: absolute; top: -100px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 200px solid transparent; border-right: 200px solid transparent;
+            border-bottom: 900px solid rgba(255, 255, 255, 0.15); z-index: 2; opacity: 0; transition: opacity 1s; pointer-events: none;
+        }
+
+        .character-container {
+            position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%) scale(0.4); opacity: 0;
+            width: 150px; height: 350px; z-index: 10;
+        }
+
+        .walking-animation { animation: walkForward 8s ease-out forwards; }
+        @keyframes walkForward {
+            0% { transform: translateX(-50%) scale(0.4) translateY(-30px); opacity: 0; filter: blur(5px); }
+            15% { opacity: 1; }
+            100% { transform: translateX(-50%) scale(1.2) translateY(30px); opacity: 1; filter: blur(0); }
+        }
+
+        .head { width: 60px; height: 70px; background: #FFDAB9; border-radius: 30px; margin: 0 auto; position: relative; z-index: 5; }
+        .hair { width: 70px; height: 50px; background: #333; border-radius: 35px 35px 0 0; position: absolute; top: -10px; left: -5px; }
+        .body-torso { width: 80px; height: 120px; background: #fff; margin: -10px auto 0; border-radius: 15px; position: relative; z-index: 4; transition: background 0.3s; }
+        .legs { width: 80px; height: 160px; background: #444; margin: -10px auto 0; border-radius: 0 0 15px 15px; position: relative; z-index: 3; transition: background 0.3s; }
+        .arm-left, .arm-right { width: 20px; height: 100px; background: #FFDAB9; position: absolute; top: 20px; border-radius: 10px; }
+        .arm-left { left: -15px; } .arm-right { right: -15px; }
+
+        .tip-box { background: #444; color: #FFD700; padding: 10px; border-radius: 8px; font-size: 0.9rem; margin-top: 10px; display: none; }
+        #musicStatus { position: absolute; bottom: 20px; width: 100%; text-align: center; font-size: 1.1rem; color: #00FFFF; text-shadow: 0 0 5px #000; display: none; }
+
+        /* [4] 최종 보고서 모달 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); z-index: 1000;
+            display: none; justify-content: center; align-items: center;
+        }
+        .report-card {
+            background: white; color: #333; width: 600px; padding: 40px;
+            border-radius: 15px; box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+            text-align: left; position: relative; max-height: 90vh; overflow-y: auto;
+        }
+        .report-card h2 { text-align: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-top: 0; color: #000; }
+        .report-item { margin-bottom: 20px; border-bottom: 1px dashed #ddd; padding-bottom: 15px; }
+        .report-label { font-weight: bold; color: #2c3e50; display: block; margin-bottom: 8px; font-size: 1.1rem; }
+        .report-content { background: #f8f9fa; padding: 15px; border-radius: 8px; font-size: 1rem; line-height: 1.6; white-space: pre-wrap; }
+        .close-btn {
+            position: absolute; top: 15px; right: 20px; font-size: 2.5rem; cursor: pointer; color: #aaa; transition: 0.2s;
+        }
+        .close-btn:hover { color: #000; }
+
+        /* [추가] 모달 하단 저장/인쇄 버튼 영역 */
+        #sendWrap, #waitBox, #replyBox, .report-actions {
+            display: flex; gap: 10px; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;
+        }
+        .btn-action {
+            flex: 1; padding: 12px; border: none; border-radius: 8px;
+            font-weight: bold; cursor: pointer; color: white; font-size: 1rem;
+        }
+        .btn-print { background-color: #2980b9; }
+        .btn-save { background-color: #27ae60; }
+
+        /* [중요] 인쇄 시 스타일 (종이로 출력될 때) */
+        @media print {
+            body * { visibility: hidden; } /* 기본적으로 다 숨김 */
+            .modal-overlay, .report-card, .report-card * { 
+                visibility: visible; /* 보고서만 보임 */
+            }
+            .modal-overlay {
+                background: none; position: absolute; left: 0; top: 0; width: 100%; display: block !important;
+            }
+            .report-card {
+                position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; 
+                box-shadow: none; border: 2px solid #000;
+            }
+            /* 인쇄할 때 숨길 것들 (닫기 버튼, 저장 버튼 등) */
+            .close-btn, .report-actions { display: none !important; }
+            .report-content { border: 1px solid #ccc; background: none; } /* 잉크 절약 */
+        }
+    </style>
+</head>
+<body>
+
+    <h1>My Vibe Runway</h1>
+    <p class="subtitle">EAIM 의생활 프로젝트: 나만의 스타일과 음악을 연출하다</p>
+
+    <div class="container">
+        <div class="control-panel">
+            
+            <div class="section-title">1. TPO (상황 설정)</div>
+            <select id="tpoSelect" onchange="checkTPO()">
+                <option value="">상황을 선택하세요</option>
+                <option value="school">🏫 학교 발표/등교</option>
+                <option value="date">🌳 주말 데이트</option>
+                <option value="party">🎉 축제/파티</option>
+                <option value="interview">👔 면접/공식행사</option>
+            </select>
+            <div id="tipBox" class="tip-box"></div>
+
+            <div class="section-title">2. 아이디어 검색 (Pinterest)</div>
+            <div class="pinterest-box">
+                <input type="text" id="pinSearch" placeholder="예: 10대 데이트룩">
+                <button class="btn-pinterest" onclick="searchPinterest()">검색</button>
+            </div>
+
+            <div class="section-title">3. 스타일링 (Artscape)</div>
+            <label>👕 상의</label>
+            <select id="topColor" onchange="changeClothes()">
+                <option value="#ffffff">🤍 화이트</option>
+                <option value="#000000">🖤 블랙</option>
+                <option value="#ff9ff3">💗 핑크</option>
+                <option value="#48dbfb">💙 스카이블루</option>
+                <option value="#ff4757">❤️ 레드</option>
+                <option value="#2ed573">💚 그린</option>
+            </select>
+
+            <label>👖 하의</label>
+            <select id="bottomColor" onchange="changeClothes()">
+                <option value="#333333">👖 다크 그레이</option>
+                <option value="#54a0ff">👖 데님 블루</option>
+                <option value="#feca57">✨ 옐로우</option>
+                <option value="#f1f2f6">🤍 화이트</option>
+                <option value="#574b90">💜 퍼플</option>
+            </select>
+
+            <div class="section-title">4. 사운드 (Musicalization)</div>
+            <div class="suno-guide">
+                <strong>💡 Suno 배경음악 제작 팁</strong><br>
+                1. <strong>[Create]</strong> → <strong>[Simple]</strong> 모드 켜기<br>
+                2. <strong>[Instrumental]</strong> 버튼 활성화 (중요!)<br>
+                3. 원하는 <strong>분위기(Style of Music)</strong> 입력<br>
+                👉 예시: <span class="keyword-tag">Fashion show</span> <span class="keyword-tag">Fast tempo</span> <span class="keyword-tag">Upbeat EDM</span> <span class="keyword-tag">Elegant Piano</span>
+            </div>
+            <a href="https://suno.com" target="_blank" class="suno-link">🎵 Suno.com 바로가기</a>
+            <input type="file" id="musicFile" accept="audio/*">
+            <button class="btn-runway" onclick="startRunway()">🎬 런웨이 & 음악 큐!</button>
+            <audio id="audioPlayer"></audio>
+
+            <div class="section-title">5. 디자이너 노트 (기획서)</div>
+            <p style="font-size:0.8rem; color:#aaa; margin-bottom:10px;">* 나의 기획 의도를 구체적으로 적어주세요.</p>
+            
+            <label style="font-size:0.85rem; color:#ccc;">Q1. TPO와 스타일링: 왜 이 상황에 이 색깔의 옷을 선택했나요?</label>
+            <textarea id="essay_tpo" placeholder="예: 즐거운 파티 분위기를 위해 밝은 노란색을 썼습니다."></textarea>
+            
+            <label style="font-size:0.85rem; color:#ccc; margin-top:5px; display:block;">Q2. 음악 선택 이유: 이 음악의 분위기가 내 패션과 어떻게 어울리나요?</label>
+            <textarea id="essay_music" placeholder="예: 당당한 걸음걸이를 위해 비트가 빠르고 강렬한 EDM을 골랐습니다."></textarea>
+
+            <label style="font-size:0.85rem; color:#ccc; margin-top:5px; display:block;">Q3. 최종 Vibe: 이 런웨이를 통해 사람들에게 보여주고 싶은 나의 이미지는?</label>
+            <textarea id="essay_vibe" placeholder="예: '자신감 넘치는 나', '차분하고 지적인 나'를 표현하고 싶습니다."></textarea>
+
+            <button class="btn-report" onclick="showReport()">📄 기획 보고서 발행</button>
+        </div>
+
+        <div class="stage-box">
+            <div class="spotlight" id="spotlight"></div>
+            <div class="character-container" id="character">
+                <div class="head"><div class="hair"></div></div>
+                <div class="body-torso" id="displayTop">
+                    <div class="arm-left"></div><div class="arm-right"></div>
+                </div>
+                <div class="legs" id="displayBottom"></div>
+            </div>
+            <div id="musicStatus">🎵 Music On Air... 🎵</div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="reportModal">
+        <div class="report-card" id="printArea">
+            <span class="close-btn" onclick="closeReport()">&times;</span>
+            <h2>✨ EAIM 런웨이 기획 보고서 ✨</h2>
+            
+            <div class="report-item">
+                <span class="report-label">1. 설정 상황 (TPO) & 스타일</span>
+                <div class="report-content" id="reportBasic"></div>
+            </div>
+
+            <div class="report-item">
+                <span class="report-label">2. 스타일링 기획 의도 (Artscape)</span>
+                <div class="report-content" id="reportTPOContent"></div>
+            </div>
+
+            <div class="report-item">
+                <span class="report-label">3. 음악 연출 의도 (Musicalization)</span>
+                <div class="report-content" id="reportMusicContent"></div>
+            </div>
+
+            <div class="report-item">
+                <span class="report-label">4. 최종 표현 목표 (My Vibe)</span>
+                <div class="report-content" id="reportVibeContent"></div>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8rem; border-top:1px solid #eee; padding-top:10px;">
+                Designed by Student Director | EAIM Studio
+            </div>
+
+            <div class="report-actions">
+                <button class="btn-action btn-print" onclick="window.print()">🖨️ 인쇄 / PDF 저장</button>
+                <button class="btn-action btn-save" onclick="saveReportImage()">💾 이미지로 저장</button>
+            </div>
+
+            <div id="sendWrap" style="margin-top:14px">
+                <button id="sendBtn" onclick="sendToTeacher()"
+                    style="width:100%;padding:14px;border:0;border-radius:10px;font-weight:800;font-size:1rem;
+                           background:#c9553f;color:#fff;cursor:pointer">📨 선생님께 보내기</button>
+            </div>
+            <div id="waitBox" style="display:none;text-align:center;padding:16px;color:#888;font-size:.9rem">
+                📨 선생님이 읽고 계세요... 답장이 오면 여기에 나타나요.
+            </div>
+            <div id="replyBox" style="display:none;background:#fdf0ec;border:1.5px solid #f2d3c8;
+                 border-radius:12px;padding:16px;margin-top:12px;text-align:left">
+                <p style="margin:0 0 7px;font-size:.78rem;font-weight:800;color:#a03f2d">선생님 한마디 💬</p>
+                <p id="replyText" style="margin:0;white-space:pre-wrap;font-size:.97rem;color:#332f2b"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function searchPinterest() {
+            const keyword = document.getElementById('pinSearch').value;
+            if (keyword) {
+                const url = `https://www.pinterest.co.kr/search/pins/?q=${encodeURIComponent(keyword)}`;
+                window.open(url, '_blank');
+            } else {
+                alert("검색어를 입력해주세요!");
+            }
+        }
+
+        function changeClothes() {
+            const topVal = document.getElementById('topColor').value;
+            const botVal = document.getElementById('bottomColor').value;
+            document.getElementById('displayTop').style.background = topVal;
+            document.getElementById('displayBottom').style.background = botVal;
+        }
+
+        function checkTPO() {
+            const tpo = document.getElementById('tpoSelect').value;
+            const tipBox = document.getElementById('tipBox');
+            let msg = "";
+            let searchKey = "";
+
+            if (tpo === "school") { msg = "Tip: 활동성이 좋고 단정한 스쿨룩"; searchKey = "10대 스쿨룩 코디"; }
+            else if (tpo === "date") { msg = "Tip: 사랑스럽거나 깔끔한 데이트룩"; searchKey = "주말 데이트 코디"; }
+            else if (tpo === "party") { msg = "Tip: 조명 아래 빛나는 화려한 파티룩"; searchKey = "하이틴 파티룩"; }
+            else if (tpo === "interview") { msg = "Tip: 신뢰감을 주는 차분한 정장룩"; searchKey = "학생 면접 복장"; }
+            
+            if (msg) {
+                tipBox.style.display = "block"; tipBox.innerText = msg;
+                document.getElementById('pinSearch').value = searchKey;
+            } else {
+                tipBox.style.display = "none";
+            }
+        }
+
+        function startRunway() {
+            const fileInput = document.getElementById('musicFile');
+            const player = document.getElementById('audioPlayer');
+            const char = document.getElementById('character');
+            const spotlight = document.getElementById('spotlight');
+            const musicStatus = document.getElementById('musicStatus');
+
+            if (!fileInput.files[0]) {
+                alert("⚠️ Suno 음악 파일을 먼저 넣어주세요!"); return;
+            }
+
+            const fileUrl = URL.createObjectURL(fileInput.files[0]);
+            player.src = fileUrl; player.volume = 0.8; player.play();
+
+            char.classList.remove('walking-animation');
+            void char.offsetWidth;
+            char.classList.add('walking-animation');
+
+            spotlight.style.opacity = 1;
+            musicStatus.style.display = "block";
+
+            setTimeout(() => {
+                spotlight.style.opacity = 0; musicStatus.style.display = "none";
+            }, 8000);
+        }
+
+        // 보고서 보기
+        function showReport() {
+            const tpoSelect = document.getElementById('tpoSelect');
+            const tpoText = tpoSelect.options[tpoSelect.selectedIndex].text;
+            
+            const topSel = document.getElementById('topColor');
+            const botSel = document.getElementById('bottomColor');
+            const topText = topSel.options[topSel.selectedIndex].text;
+            const botText = botSel.options[botSel.selectedIndex].text;
+
+            const val_tpo = document.getElementById('essay_tpo').value;
+            const val_music = document.getElementById('essay_music').value;
+            const val_vibe = document.getElementById('essay_vibe').value;
+
+            if(tpoSelect.value === "") { alert("TPO를 먼저 선택해주세요!"); return; }
+            if(val_tpo.trim() === "" || val_music.trim() === "" || val_vibe.trim() === "") { 
+                alert("디자이너 노트(기획서) 내용을 모두 작성해주세요!"); return; 
+            }
+
+            document.getElementById('reportBasic').innerText = `상황: ${tpoText} / 의상: ${topText} & ${botText}`;
+            document.getElementById('reportTPOContent').innerText = val_tpo;
+            document.getElementById('reportMusicContent').innerText = val_music;
+            document.getElementById('reportVibeContent').innerText = val_vibe;
+
+            document.getElementById('reportModal').style.display = "flex";
+        }
+
+        function closeReport() {
+            document.getElementById('reportModal').style.display = "none";
+        }
+
+        // [추가] 이미지 저장 함수
+        function saveReportImage() {
+            const reportElement = document.getElementById("printArea");
+            
+            // 캡처 전에 닫기 버튼과 액션 버튼을 임시로 숨김 (깔끔한 저장을 위해)
+            const closeBtn = document.querySelector('.close-btn');
+            const actions = document.querySelector('.report-actions');
+            closeBtn.style.display = 'none';
+            actions.style.display = 'none';
+
+            html2canvas(reportElement).then(canvas => {
+                const link = document.createElement("a");
+                document.body.appendChild(link);
+                link.download = "나의_런웨이_기획서.png";
+                link.href = canvas.toDataURL("image/png");
+                link.target = '_blank';
+                link.click();
+                document.body.removeChild(link);
+
+                // 다시 버튼들 보이게 복구
+                closeBtn.style.display = 'block';
+                actions.style.display = 'flex';
+            });
+        }
+
+        // 초기화
+        changeClothes();
+    
+        /* ── 선생님께 보내기 ── */
+        let sentOnce = false;
+
+        async function sendToTeacher() {
+            if (!window.EAIM_STUDENT) {
+                alert("수업방에 들어와 있지 않아요.\n선생님이 주신 QR이나 링크로 들어와 주세요.");
+                return;
+            }
+            const q1 = document.getElementById('essay_tpo').value.trim();
+            const q2 = document.getElementById('essay_music').value.trim();
+            const q3 = document.getElementById('essay_vibe').value.trim();
+            if (!q1 && !q2 && !q3) { alert("디자이너 노트를 먼저 써주세요."); return; }
+
+            const tpoSel = document.getElementById('tpoSelect');
+            const tpo = tpoSel.options[tpoSel.selectedIndex].text;
+
+            document.getElementById('sendWrap').style.display = 'none';
+            document.getElementById('waitBox').style.display = 'block';
+
+            await window.EAIM_SAVE_WORK({
+                kind: '런웨이 기획서',
+                title: tpo,
+                content: `[상황] ${tpo}\n\n[Q1 스타일링 의도]\n${q1 || '(안 씀)'}\n\n[Q2 음악 연출 의도]\n${q2 || '(안 씀)'}\n\n[Q3 보여주고 싶은 나]\n${q3 || '(안 씀)'}`,
+                extra: { tpo, q1, q2, q3 }
+            });
+            sentOnce = true;
+        }
+
+        /* 선생님 답장이 오면 불립니다. */
+        window.EAIM_RENDER_REPLY = function (rows) {
+            const last = rows[rows.length - 1];
+            if (!last || !last.feedback) return;
+            document.getElementById('waitBox').style.display = 'none';
+            document.getElementById('replyText').innerText = last.feedback;
+            document.getElementById('replyBox').style.display = 'block';
+            document.getElementById('sendWrap').style.display = 'block';
+            document.getElementById('sendBtn').innerText = '고쳐서 다시 보내기';
+        };
+    </script>
+
+<!-- ══ EAIM 교실 연동 ══ -->
+<script>
+    window.EAIM_APP_TYPE = 'vibe-runway';
+    window.EAIM_TRACK    = 'mind';
+</script>
+<script type="module">
+    import { mountStudentGate, saveWork, listenMyWorks, toast } from './eaim-classroom-core.js';
+
+    window.EAIM_SAVE_WORK = async (payload) => {
+        try {
+            const id = await saveWork(payload);
+            if (id) toast('선생님께 보냈어요');
+        } catch (e) { console.error(e); toast('보내지 못했어요', false); }
+    };
+
+    mountStudentGate({
+        onReady: (student) => {
+            if (!student) return;
+            const sub = document.querySelector('.subtitle');
+            if (sub) sub.textContent = `${student.roomTitle} · ${student.className || ''} ${student.number}번`;
+            listenMyWorks((rows) => window.EAIM_RENDER_REPLY?.(rows));
+        }
+    });
+</script>
+</body>
+</html>
