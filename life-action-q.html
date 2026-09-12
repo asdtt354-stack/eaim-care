@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="light">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>라이프 액션Q — 가정 생활 실천</title>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<style>
+  :root{
+    --paper:#fdf9f6; --ink:#332f2b; --soft:#7d7268; --line:#ece2da;
+    --main:#c9553f; --main-deep:#a03f2d; --main-bg:#fdf0ec; --main-line:#f2d3c8;
+    --gold:#d9a441;
+    --ye:#b5543f; --hyo:#c08a2e; --jeong:#3f7fa0; --chae:#4a8a63;
+  }
+  *{box-sizing:border-box}
+  html,body{background:var(--paper)}
+  body{
+    margin:0;color:var(--ink);line-height:1.6;padding:24px 16px 80px;
+    font-family:'Pretendard','Malgun Gothic',sans-serif;
+  }
+  .wrap{max-width:620px;margin:0 auto}
+
+  header.top{margin-bottom:26px}
+  header.top h1{margin:0;font-size:1.6rem;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+  header.top .bar{width:44px;height:4px;border-radius:99px;margin-top:10px;
+    background:linear-gradient(90deg,var(--main),var(--gold))}
+  header.top p{margin:9px 0 0;color:var(--soft);font-size:.92rem}
+
+  button{font-family:inherit;cursor:pointer}
+  .card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:16px;
+    box-shadow:0 3px 14px rgba(120,80,60,.05)}
+  .card h3{margin:0 0 14px;font-size:1.03rem;display:flex;align-items:center;gap:8px}
+  .card h3 .n{width:22px;height:22px;border-radius:7px;background:var(--main);color:#fff;
+    font-size:.78rem;display:flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 auto}
+
+  label{display:block;font-weight:700;font-size:.85rem;margin:14px 0 6px;color:var(--soft)}
+  label:first-of-type{margin-top:0}
+  input[type=text],textarea{
+    width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:11px;
+    font-size:1rem;font-family:inherit;background:#fffdfb}
+  input:focus,textarea:focus{outline:none;border-color:var(--main);background:#fff}
+  textarea{resize:vertical;min-height:64px}
+
+  /* 가치 고르기 */
+  .values{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+  .v{padding:14px 6px;border:1.5px solid var(--line);border-radius:13px;background:#fff;
+    font-weight:800;font-size:.97rem;color:var(--soft);transition:all .15s;text-align:center}
+  .v small{display:block;font-weight:600;font-size:.7rem;opacity:.8;margin-top:3px}
+  .v:hover{transform:translateY(-2px)}
+  .v.on{color:#fff;border-color:transparent;transform:translateY(-2px)}
+  #v-ye.on{background:var(--ye)} #v-hyo.on{background:var(--hyo)}
+  #v-jeong.on{background:var(--jeong)} #v-chae.on{background:var(--chae)}
+  .vdesc{margin:12px 0 0;font-size:.87rem;color:var(--soft)}
+
+  .bgm{background:#fbf5ef;border:1px solid var(--line);border-radius:13px;padding:14px}
+  .bgm p{margin:0 0 9px;font-size:.88rem;color:var(--soft)}
+
+  .go{width:100%;padding:16px;border:0;border-radius:13px;color:#fff;font-size:1.06rem;font-weight:800;
+    background:linear-gradient(135deg,var(--main),var(--main-deep));
+    box-shadow:0 6px 16px rgba(201,85,63,.26)}
+  .go.sub{background:#fff;color:var(--main-deep);border:1.5px solid var(--main-line);box-shadow:none}
+
+  /* 티켓 */
+  .ticket{display:none;background:#fff;border:2px dashed var(--main);border-radius:16px;
+    padding:26px 22px;margin-top:20px;position:relative}
+  .ticket::before{content:"ACTION TICKET";position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+    background:var(--main);color:#fff;padding:4px 14px;font-size:.72rem;font-weight:800;
+    border-radius:99px;letter-spacing:.08em}
+  .ticket .row{display:flex;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:.95rem}
+  .ticket .row:last-of-type{border-bottom:0}
+  .ticket .row b{flex:0 0 66px;color:var(--soft);font-weight:700;font-size:.85rem}
+  .ticket .act{font-size:1.12rem;font-weight:800;color:var(--main-deep)}
+  .ticket .foot{text-align:center;color:#b5aaa2;font-size:.76rem;margin:16px 0 0}
+
+  .save{display:none;gap:9px;margin-top:14px}
+  .save button{flex:1;padding:13px;border:1.5px solid var(--line);border-radius:11px;background:#fff;
+    font-weight:700;color:var(--soft);font-size:.93rem}
+
+  /* 돌아오기 */
+  .back{background:linear-gradient(135deg,#fdf0ec,#fbf5ef);border:1.5px solid var(--main-line)}
+  .past{border:1px solid var(--line);border-radius:13px;padding:16px;background:#fff;margin-bottom:11px}
+  .past .when{font-size:.78rem;color:var(--soft)}
+  .past .what{font-weight:800;margin:5px 0 3px;font-size:1.02rem}
+  .past .how{font-size:.88rem;color:var(--soft)}
+  .yn{display:flex;gap:9px;margin:13px 0 0}
+  .yn button{flex:1;padding:11px;border:1.5px solid var(--line);border-radius:10px;background:#fff;
+    font-weight:800;font-size:.94rem;color:var(--soft)}
+  .yn button.on{background:var(--main);border-color:var(--main);color:#fff}
+  .done-tag{display:inline-block;background:var(--main-bg);color:var(--main-deep);
+    font-size:.78rem;font-weight:800;padding:3px 11px;border-radius:99px;margin-top:9px}
+
+  .hidden{display:none !important}
+  @media print{
+    body *{visibility:hidden}
+    .ticket,.ticket *{visibility:visible}
+    .ticket{position:absolute;left:0;top:0;width:100%;margin:0;border:2px solid #000}
+  }
+  @media(max-width:430px){.values{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>🏠 라이프 액션Q</h1>
+    <div class="bar"></div>
+    <p id="sub">마음을 집에서 행동으로 옮겨보는 시간</p>
+  </header>
+
+  <!-- ① 지난 약속 돌아보기 (지난 기록이 있을 때만) -->
+  <section class="card back hidden" id="backBox">
+    <h3><span class="n">★</span>지난번 약속, 했나요?</h3>
+    <div id="pastList"></div>
+  </section>
+
+  <!-- ② 새 티켓 만들기 -->
+  <section class="card">
+    <h3><span class="n">1</span>오늘의 가치</h3>
+    <div class="values">
+      <button class="v" id="v-ye"    onclick="pick('ye')">예<small>식사예절·인사</small></button>
+      <button class="v" id="v-hyo"   onclick="pick('hyo')">효<small>부모님 돕기</small></button>
+      <button class="v" id="v-jeong" onclick="pick('jeong')">정직<small>솔직한 대화</small></button>
+      <button class="v" id="v-chae"  onclick="pick('chae')">책임<small>청소·정리</small></button>
+    </div>
+    <p class="vdesc" id="vdesc">가치를 하나 골라주세요.</p>
+  </section>
+
+  <section class="card">
+    <h3><span class="n">2</span>행동 설계</h3>
+    <label for="aTime">언제, 어디서</label>
+    <input type="text" id="aTime" placeholder="예: 오늘 저녁 7시 식탁에서">
+    <label for="aWhat">무엇을</label>
+    <input type="text" id="aWhat" placeholder="구체적인 행동을 적어주세요">
+    <label for="aHow">어떻게</label>
+    <textarea id="aHow" rows="2" placeholder="예: 두 손으로 공손하게 드린다"></textarea>
+  </section>
+
+  <section class="card">
+    <h3><span class="n">3</span>액션 BGM</h3>
+    <div class="bgm">
+      <p>🎶 이 행동을 할 때 들을 음악을 정해요.</p>
+      <input type="text" id="bgm" placeholder="예: 설거지 노동요 vol.1">
+    </div>
+  </section>
+
+  <button class="go" onclick="makeTicket()">🎫 실천 티켓 발권하기</button>
+
+  <div class="ticket" id="ticket">
+    <div class="row"><b>가치</b><span id="tValue"></span></div>
+    <div class="row"><b>언제</b><span id="tTime"></span></div>
+    <div class="row"><b>행동</b><span class="act" id="tWhat"></span></div>
+    <div class="row"><b>방법</b><span id="tHow"></span></div>
+    <div class="row"><b>BGM</b><span id="tBgm"></span></div>
+    <p class="foot">EAIM 가정 실천 프로젝트</p>
+  </div>
+
+  <div class="save" id="saveBox">
+    <button onclick="window.print()">🖨️ 인쇄 / PDF</button>
+    <button onclick="saveImage()">💾 이미지 저장</button>
+  </div>
+
+  <p id="afterNote" class="hidden" style="text-align:center;color:var(--soft);font-size:.9rem;margin-top:18px">
+    집에서 해보고, <b>다음 시간에 다시 들어와서</b> 어땠는지 알려주세요.
+  </p>
+
+</div>
+
+<script>
+  const HINTS = {
+    ye:    { name:'예 (식사 예절·인사)',  what:'예: 수저 놓기, 현관 신발 정리',        how:'예: 소리 나지 않게 가지런히 놓는다' },
+    hyo:   { name:'효 (부모님 돕기)',      what:'예: 어깨 주물러 드리기, 설거지 돕기',   how:'예: "시원하세요?" 물으며 3분간 한다' },
+    jeong: { name:'정직 (솔직한 대화)',    what:'예: 실수한 일을 솔직히 말하기',         how:'예: 변명 없이 내 잘못이라고 말한다' },
+    chae:  { name:'책임 (청소·정리)',      what:'예: 내 방 환기하기, 빨래 개기',         how:'예: 각을 맞춰 네모나게 갠다' },
+  };
+  let picked = '';
+
+  function pick(k) {
+    picked = k;
+    document.querySelectorAll('.v').forEach(b => b.classList.remove('on'));
+    document.getElementById('v-' + k).classList.add('on');
+    document.getElementById('aWhat').placeholder = HINTS[k].what;
+    document.getElementById('aHow').placeholder = HINTS[k].how;
+    document.getElementById('vdesc').innerText = '고른 가치: ' + HINTS[k].name;
+  }
+
+  function makeTicket() {
+    if (!picked) { alert('먼저 오늘의 가치를 골라주세요.'); return; }
+    const what = document.getElementById('aWhat').value.trim();
+    if (!what) { alert('무엇을 할지 적어주세요.'); return; }
+
+    const time = document.getElementById('aTime').value.trim() || '오늘 중 언제든';
+    const how  = document.getElementById('aHow').value.trim()  || '정성을 다해서';
+    const bgm  = document.getElementById('bgm').value.trim()   || '현장 라이브 사운드';
+
+    document.getElementById('tValue').innerText = HINTS[picked].name;
+    document.getElementById('tTime').innerText  = time;
+    document.getElementById('tWhat').innerText  = what;
+    document.getElementById('tHow').innerText   = how;
+    document.getElementById('tBgm').innerText   = bgm;
+
+    document.getElementById('ticket').style.display = 'block';
+    document.getElementById('saveBox').style.display = 'flex';
+    document.getElementById('afterNote').classList.remove('hidden');
+    document.getElementById('saveBox').scrollIntoView({ behavior: 'smooth' });
+
+    // 수업방으로 들어온 학생이면 약속을 남깁니다. 다음 시간에 이걸 다시 불러옵니다.
+    if (window.EAIM_SAVE_WORK) {
+      window.EAIM_SAVE_WORK({
+        kind: '실천 약속',
+        title: what,
+        content: `[${HINTS[picked].name}] ${time} / ${what} / ${how}`,
+        extra: { value: picked, valueName: HINTS[picked].name, when: time, what, how, bgm, done: null }
+      });
+    }
+  }
+
+  function saveImage() {
+    html2canvas(document.getElementById('ticket')).then(canvas => {
+      const a = document.createElement('a');
+      a.download = '나의_실천_티켓.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    });
+  }
+
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  }
+
+  /* 지난 약속 그리기 — 교실 연동 스크립트가 불러줍니다. */
+  window.EAIM_RENDER_PAST = function (rows, onAnswer) {
+    const open = rows.filter(r => r.kind === '실천 약속');
+    if (!open.length) return false;
+
+    const box = document.getElementById('pastList');
+    box.innerHTML = open.slice(0, 3).map(r => `
+      <div class="past" data-id="${r.id}">
+        <p class="when">${esc(r.valueName || '')} · ${esc(r.when || '')}</p>
+        <p class="what">${esc(r.what || r.title || '')}</p>
+        <p class="how">${esc(r.how || '')}</p>
+        ${r.done === true || r.done === false ? `
+          <span class="done-tag">${r.done ? '했어요 ✓' : '못 했어요'}</span>
+          ${r.note ? `<p class="how" style="margin-top:7px">${esc(r.note)}</p>` : ''}
+        ` : `
+          <div class="yn">
+            <button data-v="1">했어요</button>
+            <button data-v="0">못 했어요</button>
+          </div>
+          <div class="hidden note-box" style="margin-top:11px">
+            <textarea rows="2" placeholder="어땠는지 한 줄만 써주세요"></textarea>
+            <button class="go sub" style="margin-top:8px;padding:11px">보내기</button>
+          </div>
+        `}
+      </div>`).join('');
+
+    box.querySelectorAll('.past').forEach(el => {
+      const id = el.dataset.id;
+      const noteBox = el.querySelector('.note-box');
+      if (!noteBox) return;
+      let answer = null;
+
+      el.querySelectorAll('.yn button').forEach(b => {
+        b.addEventListener('click', () => {
+          answer = b.dataset.v === '1';
+          el.querySelectorAll('.yn button').forEach(x => x.classList.remove('on'));
+          b.classList.add('on');
+          noteBox.classList.remove('hidden');
+        });
+      });
+
+      noteBox.querySelector('button').addEventListener('click', async () => {
+        if (answer === null) { alert('했는지 못 했는지 먼저 눌러주세요.'); return; }
+        const note = noteBox.querySelector('textarea').value.trim();
+        const btn = noteBox.querySelector('button');
+        btn.disabled = true; btn.textContent = '보내는 중...';
+        await onAnswer(id, { done: answer, note });
+        el.innerHTML = `<p class="what">${el.querySelector('.what')?.innerText || ''}</p>
+                        <span class="done-tag">${answer ? '했어요 ✓' : '못 했어요'}</span>`;
+      });
+    });
+
+    document.getElementById('backBox').classList.remove('hidden');
+    return true;
+  };
+</script>
+
+<!-- ══ EAIM 교실 연동 ══ -->
+<script>
+  window.EAIM_APP_TYPE = 'life-action';
+  window.EAIM_TRACK    = 'mind';
+</script>
+<script type="module">
+  import { mountStudentGate, saveWork, findMyPastWorks, updateMyWork, toast }
+    from './eaim-classroom-core.js';
+
+  window.EAIM_SAVE_WORK = async (payload) => {
+    try {
+      const id = await saveWork(payload);
+      if (id) toast('약속을 남겼어요');
+    } catch (e) { console.error(e); toast('저장하지 못했어요', false); }
+  };
+
+  mountStudentGate({
+    onReady: async (student) => {
+      if (!student) return;
+      const sub = document.getElementById('sub');
+      if (sub) sub.textContent = `${student.roomTitle} · ${student.className || ''} ${student.number}번`;
+
+      // 지난 시간에 남긴 약속이 있으면 먼저 돌아보게 합니다.
+      try {
+        const past = await findMyPastWorks();
+        window.EAIM_RENDER_PAST?.(past, async (id, patch) => {
+          try { await updateMyWork(id, patch); toast('선생님께 전했어요'); }
+          catch (e) { console.error(e); toast('보내지 못했어요', false); }
+        });
+      } catch (e) {
+        console.warn('지난 기록을 불러오지 못했습니다:', e);
+      }
+    }
+  });
+</script>
+</body>
+</html>

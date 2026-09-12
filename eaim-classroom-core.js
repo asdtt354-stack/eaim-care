@@ -59,6 +59,7 @@ export const CARE_APPS = {
   'life-action':     { track: 'mind',   file: 'life-action-q.html',    name: '라이프 액션Q',    icon: '⚡' },
   'vibe-runway':     { track: 'mind',   file: 'my-vibe-runway.html',   name: '마이 바이브 런웨이', icon: '✨' },
   'family-harmony':  { track: 'mind',   file: 'family-harmony.html',   name: '패밀리 하모니',   icon: '🏠' },
+  'emotion-story':   { track: 'mind',   file: 'emotion-story.html',    name: '감정 스토리',     icon: '🎢' },
   'hangeul':         { track: 'korean', file: 'hangeul-letter.html',   name: '한글 놀이터',     icon: '✍️' },
   'korean-sentence': { track: 'korean', file: 'korean-sentence.html',  name: '한국어 놀이터',   icon: '🗨️' },
 };
@@ -213,6 +214,39 @@ export async function listStudents(roomId) {
   const uid = auth.currentUser.uid;
   const snap = await getDocs(collection(db, `teachers/${uid}/rooms/${roomId}/students`));
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+/* ══════════════════════════════════════════════════════════
+   지난 기록 찾기 (다음 시간에 이어서 할 때)
+
+   ⚠️ 학생은 익명 로그인이라 브라우저를 닫으면 studentId가 바뀝니다.
+      그래서 지난 시간 기록은 uid가 아니라 반+번호로 찾습니다.
+      (Firestore는 같음(==) 조건 여러 개는 색인 없이도 됩니다.
+       orderBy를 붙이면 복합 색인이 필요해지므로 정렬은 여기서 합니다.)
+   ══════════════════════════════════════════════════════════ */
+export async function findMyPastWorks() {
+  const s = window.EAIM_STUDENT;
+  if (!s) return [];
+  const filters = [where('number', '==', s.number)];
+  if (s.className) filters.push(where('className', '==', s.className));
+  const snap = await getDocs(query(
+    collection(db, `teachers/${s.teacherUid}/rooms/${s.roomId}/${WORK_COL()}`),
+    ...filters
+  ));
+  return snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .filter(w => w.app === APP_TYPE())
+    .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+}
+
+/** 학생: 지난 기록에 결과를 덧붙이기 (예: 실천했는지 표시) */
+export async function updateMyWork(workId, patch) {
+  const s = window.EAIM_STUDENT;
+  if (!s) return;
+  await updateDoc(
+    doc(db, `teachers/${s.teacherUid}/rooms/${s.roomId}/${WORK_COL()}/${workId}`),
+    { ...patch, updatedAt: serverTimestamp() }
+  );
 }
 
 /* ══════════════════════════════════════════════════════════
