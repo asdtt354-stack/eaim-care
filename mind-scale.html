@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="light">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마음 저울 — 어떤 마음이 필요할까</title>
+<style>
+  :root{
+    --paper:#fdf9f6; --ink:#332f2b; --soft:#7d7268; --line:#ece2da;
+    --main:#c9553f; --deep:#a03f2d; --bg:#fdf0ec; --mline:#f2d3c8; --gold:#d9a441;
+    --ok:#2f8a66; --okbg:#eefaf3; --okline:#bfe6d2;
+    --ye:#b5543f; --hyo:#c08a2e; --jeong:#3f7fa0; --chae:#4a8a63;
+  }
+  *{box-sizing:border-box}
+  html,body{background:var(--paper)}
+  body{margin:0;color:var(--ink);line-height:1.6;padding:22px 16px 80px;
+    font-family:'Pretendard','Malgun Gothic',sans-serif}
+  .wrap{max-width:600px;margin:0 auto}
+  button{font-family:inherit;cursor:pointer}
+
+  header.top h1{margin:0;font-size:1.5rem;letter-spacing:-.02em}
+  header.top .bar{width:42px;height:4px;border-radius:99px;margin-top:9px;
+    background:linear-gradient(90deg,var(--main),var(--gold))}
+  header.top p{margin:8px 0 20px;color:var(--soft);font-size:.89rem}
+
+  .progress{display:flex;align-items:center;gap:11px;margin-bottom:15px}
+  .ptrack{flex:1;height:7px;background:var(--line);border-radius:99px;overflow:hidden}
+  .pfill{height:100%;background:linear-gradient(90deg,var(--main),var(--gold));width:0;transition:width .4s}
+  .pnum{font-size:.82rem;color:var(--soft);font-weight:700;white-space:nowrap}
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;
+    box-shadow:0 3px 14px rgba(120,80,60,.05);margin-bottom:14px}
+
+  .where{font-size:.79rem;font-weight:800;color:var(--main);letter-spacing:.04em}
+  .situation{font-size:1.14rem;font-weight:800;margin:8px 0 0;line-height:1.55}
+
+  /* 저울 */
+  .scale{position:relative;height:132px;margin:18px 0 4px}
+  .stand{position:absolute;left:50%;bottom:16px;width:7px;height:78px;margin-left:-3.5px;
+    background:#8d8178;border-radius:3px}
+  .base{position:absolute;left:50%;bottom:10px;width:96px;height:9px;margin-left:-48px;
+    background:#8d8178;border-radius:5px}
+  .beam{position:absolute;left:50%;bottom:90px;width:240px;height:8px;margin-left:-120px;
+    background:var(--deep);border-radius:5px;transform-origin:center;
+    transform:rotate(-16deg);transition:transform 1.1s cubic-bezier(.34,1.3,.64,1)}
+  .beam.level{transform:rotate(0deg)}
+  .pan{position:absolute;top:22px;width:62px;height:7px;background:#a99b90;border-radius:4px}
+  .pan.l{left:-6px} .pan.r{right:-6px}
+  .wire{position:absolute;top:0;width:2px;height:22px;background:#c4b8ae}
+  .wire.l{left:12px} .wire.r{right:12px}
+  .chip{position:absolute;top:-30px;left:50%;transform:translateX(-50%);font-size:26px}
+
+  /* 가치 카드 */
+  .vgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:16px}
+  .vcard{padding:15px 10px;border:1.5px solid var(--line);border-radius:14px;background:#fff;
+    text-align:center;transition:all .15s}
+  .vcard .ic{font-size:1.5rem;display:block}
+  .vcard .nm{font-weight:800;font-size:1rem;margin-top:4px;display:block}
+  .vcard .sm{font-size:.73rem;color:var(--soft);display:block;margin-top:2px}
+  .vcard:hover:not(:disabled){transform:translateY(-2px)}
+  .vcard:disabled{opacity:.5;cursor:default;transform:none}
+  #c-ye.on{background:#fbeeea;border-color:var(--ye)}
+  #c-hyo.on{background:#fbf3e3;border-color:var(--hyo)}
+  #c-jeong.on{background:#eaf2f6;border-color:var(--jeong)}
+  #c-chae.on{background:#ecf5ef;border-color:var(--chae)}
+  #c-skip.on{background:#f2efec;border-color:#a99b90}
+  #c-skip{grid-column:span 2;background:#faf8f6}
+
+  /* 판정 */
+  .verdict{display:none;border-radius:14px;padding:17px;margin-top:15px}
+  .verdict.fit{background:var(--okbg);border:1.5px solid var(--okline)}
+  .verdict.near{background:#fff8e8;border:1.5px solid #edd9a8}
+  .verdict.avoid{background:#fdeeec;border:1.5px solid #f0c4b9}
+  .verdict b{display:block;font-size:.86rem;margin-bottom:6px}
+  .verdict.fit b{color:var(--ok)} .verdict.near b{color:#7a5c1e} .verdict.avoid b{color:var(--deep)}
+  .verdict p{margin:0;font-size:.96rem}
+
+  label{display:block;font-weight:700;font-size:.85rem;margin:16px 0 7px;color:var(--soft)}
+  textarea{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;
+    font-size:1rem;font-family:inherit;background:#fffdfb;resize:vertical;min-height:66px}
+  textarea:focus{outline:none;border-color:var(--main);background:#fff}
+
+  .go{width:100%;padding:15px;border:0;border-radius:13px;color:#fff;font-size:1.02rem;font-weight:800;
+    margin-top:13px;background:linear-gradient(135deg,var(--main),var(--deep));
+    box-shadow:0 6px 16px rgba(201,85,63,.24)}
+  .go:disabled{opacity:.4;box-shadow:none;cursor:default}
+  .go.sub{background:#fff;color:var(--deep);border:1.5px solid var(--mline);box-shadow:none}
+
+  .final{display:none;text-align:center}
+  .final .big{font-size:2.5rem}
+  .mine{text-align:left;background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:15px;margin-bottom:10px}
+  .mine .s{font-size:.85rem;color:var(--soft)}
+  .mine .v{font-weight:800;margin-top:4px;color:var(--deep)}
+  .mine .d{margin-top:3px;font-size:.95rem}
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>⚖️ 마음 저울</h1>
+    <div class="bar"></div>
+    <p id="sub">기울어진 상황에 어떤 마음이 필요할지 골라보고, 내가 할 일을 적어봐요</p>
+  </header>
+
+  <div class="progress" id="prog">
+    <div class="ptrack"><div class="pfill" id="pfill"></div></div>
+    <span class="pnum" id="pnum"></span>
+  </div>
+
+  <section class="card" id="playCard">
+    <p class="where" id="where"></p>
+    <p class="situation" id="situation"></p>
+
+    <div class="scale">
+      <div class="base"></div><div class="stand"></div>
+      <div class="beam" id="beam">
+        <div class="wire l"></div><div class="wire r"></div>
+        <div class="pan l"><div class="chip">😖</div></div>
+        <div class="pan r"><div class="chip" id="placed"></div></div>
+      </div>
+    </div>
+
+    <div class="vgrid">
+      <button class="vcard" id="c-ye"    onclick="pick('ye')"><span class="ic">🤝</span><span class="nm">존중</span><span class="sm">예의·배려</span></button>
+      <button class="vcard" id="c-hyo"   onclick="pick('hyo')"><span class="ic">💖</span><span class="nm">감사</span><span class="sm">고마움·효</span></button>
+      <button class="vcard" id="c-jeong" onclick="pick('jeong')"><span class="ic">✨</span><span class="nm">양심</span><span class="sm">정직·솔직함</span></button>
+      <button class="vcard" id="c-chae"  onclick="pick('chae')"><span class="ic">🌳</span><span class="nm">신뢰</span><span class="sm">책임·약속</span></button>
+      <button class="vcard" id="c-skip"  onclick="pick('skip')"><span class="ic">🫣</span><span class="nm">모른 척하기</span></button>
+    </div>
+
+    <div class="verdict" id="verdict"></div>
+
+    <div id="actBox" class="hidden">
+      <label for="myAct">그래서 나는 무엇을 할까요?</label>
+      <textarea id="myAct" placeholder="구체적인 행동 한 가지를 적어주세요"></textarea>
+      <button class="go" id="nextBtn" onclick="next()" disabled>다음 →</button>
+    </div>
+  </section>
+
+  <section class="card final" id="finalCard">
+    <div class="big">⚖️</div>
+    <p style="font-weight:800;font-size:1.15rem;margin:8px 0 4px">마음의 균형을 다 맞췄어요</p>
+    <p style="color:var(--soft);font-size:.92rem;margin:0 0 18px">오늘 고른 마음과 내가 정한 행동이에요.</p>
+    <div id="mineList"></div>
+    <button class="go" id="sendBtn" onclick="send()">선생님께 보내기</button>
+    <button class="go sub" onclick="location.reload()" style="margin-top:9px">다시 하기</button>
+  </section>
+
+</div>
+
+<script>
+  /* ══════════════════════════════════════════════════════════
+     상황 카드
+     ⚠️ 도덕과 단원에 맞게 바꾸실 때는 이 배열만 고치면 됩니다.
+        fit  : 이 상황에서 가장 필요한 마음
+        why  : 왜 그 마음인지 (학생이 읽는 설명)
+        near : 다른 좋은 마음을 골랐을 때 해줄 말
+     ══════════════════════════════════════════════════════════ */
+  const ITEMS = [
+    { where:'교실', situation:'모둠 과제에서 내가 맡은 부분을 못 했는데, 친구가 대신 해놓았다.',
+      fit:'hyo', why:'먼저 고맙다고 말하는 게 빠졌어요. 미안함보다 고마움을 전하면 관계가 회복돼요.',
+      near:'그것도 필요해요. 그런데 지금 가장 먼저 할 일은 대신 해준 친구에게 고마움을 전하는 거예요.' },
+
+    { where:'복도', situation:'친구가 실수로 다른 반 아이 물건을 망가뜨렸는데, 아무도 못 봤다.',
+      fit:'jeong', why:'아무도 안 봤을 때 어떻게 하느냐가 양심이에요. 들키느냐가 아니라 내가 아느냐의 문제예요.',
+      near:'좋은 마음이에요. 그런데 본 사람이 없을 때야말로 솔직함이 필요한 순간이에요.' },
+
+    { where:'집', situation:'엄마가 부탁하신 심부름을 깜빡했는데, 엄마가 아직 모르신다.',
+      fit:'jeong', why:'먼저 말씀드리는 게 어려워도, 나중에 알게 되시는 것보다 훨씬 나아요.',
+      near:'그 마음도 좋아요. 다만 잊은 걸 먼저 말씀드리는 게 시작이에요.' },
+
+    { where:'교실', situation:'발표하는 친구가 자꾸 말을 더듬어서, 뒤에서 웃는 소리가 들린다.',
+      fit:'ye', why:'끝까지 듣는 것만으로도 존중이에요. 웃지 않는 것, 그게 배려의 시작이에요.',
+      near:'좋은 마음이지만, 지금 그 친구에게 필요한 건 끝까지 들어주는 태도예요.' },
+
+    { where:'운동장', situation:'우리 팀이 지고 있는데, 내가 실수해서 점수를 내줬다.',
+      fit:'chae', why:'내 실수를 인정하고 다음 플레이를 하는 게 책임이에요. 숨거나 남 탓하지 않는 거예요.',
+      near:'그것도 맞아요. 그런데 지금은 내 몫을 끝까지 해내는 게 먼저예요.' },
+
+    { where:'집', situation:'할머니가 같은 이야기를 세 번째 하신다.',
+      fit:'ye', why:'"아까 들었어요" 대신 한 번 더 들어드리는 것. 그게 어른을 대하는 예의예요.',
+      near:'좋아요. 그런데 이 순간에 필요한 건 귀찮음을 참고 들어드리는 태도예요.' },
+
+    { where:'교실', situation:'친구에게 내일까지 책을 빌려주기로 했는데, 나도 그 책이 필요해졌다.',
+      fit:'chae', why:'약속을 지키거나, 못 지키면 미리 말하는 것. 둘 다 신뢰예요. 그냥 넘기는 게 문제예요.',
+      near:'그 마음도 좋아요. 다만 약속에 관한 일이라 먼저 말해주는 게 필요해요.' },
+
+    { where:'급식실', situation:'혼자 앉아 밥을 먹는 아이가 있다. 우리 자리는 이미 꽉 찼다.',
+      fit:'ye', why:'자리가 없어도 인사 한마디는 할 수 있어요. 작은 아는 척이 큰 차이를 만들어요.',
+      near:'좋은 마음이에요. 그런데 지금 필요한 건 그 아이를 없는 사람 취급하지 않는 거예요.' },
+  ];
+
+  const NAMES = { ye:'존중', hyo:'감사', jeong:'양심', chae:'신뢰' };
+  const ICONS = { ye:'🤝', hyo:'💖', jeong:'✨', chae:'🌳' };
+
+  let idx = 0, chosen = '', locked = false;
+  const mine = [];
+  const $ = id => document.getElementById(id);
+
+  function draw() {
+    const it = ITEMS[idx];
+    $('where').innerText = it.where;
+    $('situation').innerText = it.situation;
+    $('pnum').innerText = `${idx + 1} / ${ITEMS.length}`;
+    $('pfill').style.width = (idx / ITEMS.length * 100) + '%';
+    $('beam').classList.remove('level');
+    $('placed').innerText = '';
+    $('verdict').style.display = 'none';
+    $('actBox').classList.add('hidden');
+    $('myAct').value = '';
+    $('nextBtn').disabled = true;
+    chosen = ''; locked = false;
+    document.querySelectorAll('.vcard').forEach(b => { b.classList.remove('on'); b.disabled = false; });
+  }
+
+  function pick(k) {
+    if (locked) return;
+    const it = ITEMS[idx];
+    chosen = k;
+    document.querySelectorAll('.vcard').forEach(b => b.classList.remove('on'));
+    $('c-' + k).classList.add('on');
+
+    const v = $('verdict');
+    v.style.display = 'block';
+
+    if (k === 'skip') {
+      // 저울은 그대로 기울어 있습니다.
+      v.className = 'verdict avoid';
+      v.innerHTML = '<b>저울이 그대로예요</b><p>모른 척하면 편하지만, 기울어진 건 그대로 남아요. 다른 마음을 하나 골라볼까요?</p>';
+      return;
+    }
+
+    locked = true;
+    document.querySelectorAll('.vcard').forEach(b => b.disabled = true);
+    $('beam').classList.add('level');
+    $('placed').innerText = ICONS[k];
+
+    if (k === it.fit) {
+      v.className = 'verdict fit';
+      v.innerHTML = `<b>${NAMES[k]}의 힘으로 균형을 찾았어요</b><p>${it.why}</p>`;
+    } else {
+      v.className = 'verdict near';
+      v.innerHTML = `<b>${NAMES[k]}도 좋은 마음이에요</b><p>${it.near}<br><br>이 상황에서 가장 필요한 건 <b>${NAMES[it.fit]}</b>이에요. ${it.why}</p>`;
+    }
+
+    $('actBox').classList.remove('hidden');
+    $('myAct').focus();
+  }
+
+  $('myAct').addEventListener('input', e => {
+    $('nextBtn').disabled = e.target.value.trim().length < 5;
+  });
+
+  function next() {
+    const it = ITEMS[idx];
+    mine.push({ situation: it.situation, value: NAMES[chosen] || '', fit: NAMES[it.fit], act: $('myAct').value.trim() });
+    idx++;
+    if (idx < ITEMS.length) { draw(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    finish();
+  }
+
+  function finish() {
+    $('playCard').classList.add('hidden');
+    $('prog').classList.add('hidden');
+    $('finalCard').style.display = 'block';
+    $('mineList').innerHTML = mine.map(m => `
+      <div class="mine">
+        <p class="s">${esc(m.situation)}</p>
+        <p class="v">${esc(m.value)}</p>
+        <p class="d">${esc(m.act)}</p>
+      </div>`).join('');
+    if (!window.EAIM_STUDENT) $('sendBtn').classList.add('hidden');
+  }
+
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  }
+
+  async function send() {
+    const btn = $('sendBtn');
+    btn.disabled = true; btn.innerText = '보내는 중...';
+    await window.EAIM_SAVE_WORK({
+      kind: '마음 저울',
+      title: `${mine.length}개 상황`,
+      content: mine.map(m => `· ${m.situation}\n  고른 마음: ${m.value}\n  내가 할 일: ${m.act}`).join('\n\n'),
+      extra: { picked: mine.map(m => m.value) }
+    });
+    btn.innerText = '✓ 보냈어요';
+  }
+
+  draw();
+</script>
+
+<!-- ══ EAIM 교실 연동 ══ -->
+<script>
+  window.EAIM_APP_TYPE = 'mind-scale';
+  window.EAIM_TRACK    = 'mind';
+</script>
+<script type="module">
+  import { mountStudentGate, saveWork, toast } from './eaim-classroom-core.js';
+
+  window.EAIM_SAVE_WORK = async (payload) => {
+    try {
+      const id = await saveWork(payload);
+      if (id) toast('선생님께 보냈어요');
+    } catch (e) { console.error(e); toast('보내지 못했어요', false); }
+  };
+
+  mountStudentGate({
+    onReady: (student) => {
+      if (!student) return;
+      const sub = document.getElementById('sub');
+      if (sub) sub.textContent = `${student.roomTitle} · ${student.className || ''} ${student.number}번`;
+    }
+  });
+</script>
+</body>
+</html>

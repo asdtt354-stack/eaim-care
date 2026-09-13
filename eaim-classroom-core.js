@@ -54,12 +54,14 @@ const WORK_COL = () => (TRACK() === 'korean' ? 'koreanProgress' : 'reflections')
 
 /* ════════ 스튜디오 앱 목록 ════════ */
 export const CARE_APPS = {
-  'mind-scale':      { track: 'mind',   file: 'mind_scale.html',       name: '마음 저울',       icon: '⚖️' },
+  'mind-scale':      { track: 'mind',   file: 'mind-scale.html',       name: '마음 저울',       icon: '⚖️' },
   'music-rep':       { track: 'mind',   file: 'music_rep.html',        name: '뮤직랩',          icon: '🎵' },
   'life-action':     { track: 'mind',   file: 'life-action-q.html',    name: '라이프 액션Q',    icon: '⚡' },
   'vibe-runway':     { track: 'mind',   file: 'my-vibe-runway.html',   name: '마이 바이브 런웨이', icon: '✨' },
   'family-harmony':  { track: 'mind',   file: 'family-harmony.html',   name: '패밀리 하모니',   icon: '🏠' },
   'emotion-story':   { track: 'mind',   file: 'emotion-story.html',    name: '감정 스토리',     icon: '🎢' },
+  'round-words':     { track: 'mind',   file: 'round-words.html',      name: '동그란 말 연습',  icon: '🌈' },
+  'feel-guess':      { track: 'mind',   file: 'feel-guess.html',       name: '우리 반 마음 맞히기', icon: '🫧' },
   'hangeul':         { track: 'korean', file: 'hangeul-letter.html',   name: '한글 놀이터',     icon: '✍️' },
   'korean-sentence': { track: 'korean', file: 'korean-sentence.html',  name: '한국어 놀이터',   icon: '🗨️' },
 };
@@ -301,6 +303,82 @@ export function listenMyWorks(cb) {
       .sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
     cb(rows);
   });
+}
+
+/* ══════════════════════════════════════════════════════════
+   단체 게임 — "우리 반은 어떻게 느꼈을까"
+
+   ⚠️ 경로를 얕게 유지합니다. 기존 Firestore 규칙이
+      teachers/{uid}/rooms/{roomId}/{하위컬렉션}/{문서} 딱 2단계까지만
+      열려 있기 때문에, 답안은 방 바로 아래 평평한 컬렉션에 둡니다.
+
+     teachers/{uid}/rooms/{roomId}/liveGame/current
+       { items, currentIndex:-1, status:'lobby'|'question'|'reveal'|'ended', sessionId }
+     teachers/{uid}/rooms/{roomId}/liveGameAnswers/{sessionId}_{studentId}_{qIndex}
+       { feel, guess, correct, points, ...학생정보 }
+
+   점수는 '내 감정'이 아니라 '우리 반이 뭘 골랐을지 맞히기'에만 붙습니다.
+   내가 느낀 감정은 맞고 틀리고가 없습니다.
+   ══════════════════════════════════════════════════════════ */
+
+export async function createLiveGame({ roomId, items }) {
+  const uid = auth.currentUser.uid;
+  const sessionId = String(Date.now());
+  await setDoc(doc(db, `teachers/${uid}/rooms/${roomId}/liveGame/current`), {
+    items, currentIndex: -1, status: 'lobby', sessionId, createdAt: serverTimestamp(),
+  });
+  return sessionId;
+}
+
+export function listenLiveGame(teacherUid, roomId, cb) {
+  return onSnapshot(
+    doc(db, `teachers/${teacherUid}/rooms/${roomId}/liveGame/current`),
+    snap => cb(snap.exists() ? snap.data() : null)
+  );
+}
+
+export async function setLiveGameState(roomId, patch) {
+  const uid = auth.currentUser.uid;
+  await updateDoc(doc(db, `teachers/${uid}/rooms/${roomId}/liveGame/current`), patch);
+}
+
+export async function submitGameAnswer({ qIndex, sessionId, feel, guess }) {
+  const s = window.EAIM_STUDENT;
+  const studentId = auth.currentUser?.uid;
+  if (!s || !studentId) return;
+  await setDoc(
+    doc(db, `teachers/${s.teacherUid}/rooms/${s.roomId}/liveGameAnswers/${sessionId}_${studentId}_${qIndex}`),
+    {
+      sessionId, studentId, qIndex, feel, guess,
+      className: s.className || null, number: s.number || null, name: s.name || null,
+      createdAt: serverTimestamp(),
+    }
+  );
+}
+
+export function listenGameAnswers(teacherUid, roomId, sessionId, qIndex, cb) {
+  const q = query(
+    collection(db, `teachers/${teacherUid}/rooms/${roomId}/liveGameAnswers`),
+    where('sessionId', '==', sessionId), where('qIndex', '==', qIndex)
+  );
+  return onSnapshot(q, snap => cb(snap.docs.map(d => d.data())));
+}
+
+export async function getGameAnswers(teacherUid, roomId, sessionId) {
+  const q = query(
+    collection(db, `teachers/${teacherUid}/rooms/${roomId}/liveGameAnswers`),
+    where('sessionId', '==', sessionId)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d => d.data());
+}
+
+/** 가장 많이 나온 감정 (동률이면 여러 개) */
+export function topFeelings(answers) {
+  const c = {};
+  answers.forEach(a => { if (a.feel) c[a.feel] = (c[a.feel] || 0) + 1; });
+  const max = Math.max(0, ...Object.values(c));
+  return { counts: c, top: Object.keys(c).filter(k => c[k] === max), max };
 }
 
 /* ════════ QR / 입장 링크 ════════ */

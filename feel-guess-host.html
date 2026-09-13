@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="light">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>단체 게임 진행 — 우리 반은 어떻게 느꼈을까</title>
+<style>
+  :root{
+    --paper:#fdf9f6; --ink:#332f2b; --soft:#7d7268; --line:#ece2da;
+    --main:#c9553f; --deep:#a03f2d; --bg:#fdf0ec; --mline:#f2d3c8; --gold:#d9a441;
+  }
+  *{box-sizing:border-box}
+  html,body{background:var(--paper)}
+  body{margin:0;color:var(--ink);line-height:1.6;padding:26px 20px 70px;
+    font-family:'Pretendard','Malgun Gothic',sans-serif}
+  .wrap{max-width:900px;margin:0 auto}
+  button{font-family:inherit;cursor:pointer}
+  a{color:var(--deep)}
+
+  header.top{display:flex;justify-content:space-between;align-items:center;gap:12px;
+    padding-bottom:15px;border-bottom:1px solid var(--line);margin-bottom:22px;flex-wrap:wrap}
+  header.top h1{margin:0;font-size:1.35rem}
+  header.top .sub{color:var(--soft);font-size:.87rem;margin:2px 0 0}
+
+  .btn{padding:11px 18px;border:0;border-radius:10px;font-weight:800;font-size:.95rem;color:#fff;
+    background:linear-gradient(135deg,var(--main),var(--deep))}
+  .btn.ghost{background:#fff;color:var(--soft);border:1.5px solid var(--line)}
+  .btn.small{padding:8px 14px;font-size:.85rem}
+  .btn:disabled{opacity:.42;cursor:default}
+
+  select{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:11px;
+    font-size:1rem;font-family:inherit;background:#fff}
+  label{display:block;font-weight:700;font-size:.84rem;margin:0 0 6px;color:var(--soft)}
+
+  .bar{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:20px}
+  .bar .f{flex:1;min-width:230px}
+
+  .stagebox{background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px;
+    box-shadow:0 3px 14px rgba(120,80,60,.05)}
+  .qnum{font-size:.82rem;font-weight:800;color:var(--main);letter-spacing:.04em}
+  .situation{font-size:1.7rem;font-weight:800;margin:9px 0 20px;line-height:1.45}
+
+  .counter{font-size:1rem;color:var(--soft);font-weight:700}
+  .counter b{color:var(--deep);font-size:1.5rem}
+
+  .bars{margin-top:14px}
+  .row{margin:13px 0}
+  .row .lab{display:flex;justify-content:space-between;font-size:1.05rem;font-weight:700;margin-bottom:5px}
+  .row .rail{height:20px;background:var(--line);border-radius:99px;overflow:hidden}
+  .row .val{height:100%;width:0;border-radius:99px;transition:width .7s;
+    background:linear-gradient(90deg,var(--main),var(--gold))}
+  .row.top .val{background:linear-gradient(90deg,var(--deep),var(--main))}
+
+  .acts{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+  .acts .btn{flex:1;min-width:150px;padding:15px}
+
+  .note{background:#fff8e8;border:1px solid #edd9a8;border-radius:11px;padding:13px 15px;
+    font-size:.87rem;color:#7a5c1e;margin-top:18px}
+  .empty{color:var(--soft);text-align:center;padding:40px 0}
+  .gate{text-align:center;padding:64px 20px}
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <h1>🫧 우리 반은 어떻게 느꼈을까 — 진행 화면</h1>
+      <p class="sub">이 화면을 칠판에 띄우세요. <a href="index.html">에임 케어로</a></p>
+    </div>
+    <div id="who"></div>
+  </header>
+
+  <section id="gate" class="gate">
+    <p style="color:var(--soft)">선생님 구글 계정으로 들어와 주세요.</p>
+    <button class="btn" id="loginBtn">구글 계정으로 시작하기</button>
+  </section>
+
+  <main id="main" class="hidden">
+    <div class="bar">
+      <div class="f">
+        <label for="roomSel">수업방</label>
+        <select id="roomSel"><option value="">불러오는 중...</option></select>
+      </div>
+      <button class="btn ghost" id="newGameBtn" disabled>새 게임 준비</button>
+    </div>
+
+    <div class="stagebox" id="stage">
+      <p class="empty">수업방을 고르고 <b>새 게임 준비</b>를 누르세요.</p>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+import {
+  CARE_APPS, teacherLogin, teacherLogout, onTeacherAuthChange,
+  listMyRooms, createLiveGame, listenLiveGame, setLiveGameState,
+  listenGameAnswers, toast
+} from './eaim-classroom-core.js';
+
+/* ── 문제 ──
+   답이 갈리도록 일부러 애매한 상황을 씁니다.
+   한쪽으로 몰리는 상황은 이야깃거리가 안 나옵니다. */
+const ITEMS = [
+  { situation:'친구들이 단톡방에서 내 얘기를 하다가, 내가 들어오자 조용해졌다.',
+    options:['불안한','서운한','궁금한','아무렇지 않은'] },
+  { situation:'열심히 준비한 발표가 끝났는데, 아무도 아무 말이 없다.',
+    options:['허전한','부끄러운','후련한','답답한'] },
+  { situation:'엄마가 "너 요즘 왜 그래?"라고 물으셨다.',
+    options:['답답한','미안한','귀찮은','걱정되는'] },
+  { situation:'친한 친구가 다른 친구랑만 어울리는 것 같다.',
+    options:['서운한','외로운','질투나는','괜찮은'] },
+  { situation:'시험을 잘 봤는데, 더 잘 본 친구가 옆에서 아쉬워한다.',
+    options:['뿌듯한','미안한','얄미운','어색한'] },
+  { situation:'모둠에서 내 의견이 그냥 넘어갔다.',
+    options:['억울한','속상한','답답한','아쉬운'] },
+  { situation:'선생님이 나만 따로 불러서 이야기하자고 하신다.',
+    options:['긴장되는','궁금한','무서운','기대되는'] },
+  { situation:'동생이 내 잘못이 아닌 일로 나 때문이라고 했다.',
+    options:['억울한','화가 난','황당한','서운한'] },
+];
+
+let rooms = [], roomId = '', state = null, unsubGame = null, unsubAns = null, answers = [];
+const $ = id => document.getElementById(id);
+
+$('loginBtn').addEventListener('click', async () => {
+  try { await teacherLogin(); }
+  catch (e) { console.error(e); toast('로그인하지 못했어요', false); }
+});
+
+onTeacherAuthChange(async (user) => {
+  if (user && !user.isAnonymous) {
+    $('gate').classList.add('hidden'); $('main').classList.remove('hidden');
+    $('who').innerHTML = `<span style="font-size:.87rem;color:var(--soft)">${user.email}</span>
+      <button class="btn ghost small" id="outBtn" style="margin-left:8px">나가기</button>`;
+    $('outBtn').addEventListener('click', () => teacherLogout());
+    await loadRooms();
+  } else {
+    $('gate').classList.remove('hidden'); $('main').classList.add('hidden'); $('who').textContent = '';
+  }
+});
+
+async function loadRooms() {
+  try { rooms = (await listMyRooms()).filter(r => r.app === 'feel-guess'); }
+  catch (e) { console.error(e); return; }
+  if (!rooms.length) {
+    $('roomSel').innerHTML = '<option value="">이 게임 수업방이 없습니다</option>';
+    $('stage').innerHTML = '<p class="empty">에임 케어 첫 화면에서 <b>우리 반 마음 맞히기</b> 수업방을 먼저 만들어 주세요.</p>';
+    return;
+  }
+  $('roomSel').innerHTML = '<option value="">고르세요</option>' +
+    rooms.map(r => `<option value="${r.id}">${r.title || '우리 반 마음 맞히기'}</option>`).join('');
+}
+
+$('roomSel').addEventListener('change', e => {
+  roomId = e.target.value;
+  $('newGameBtn').disabled = !roomId;
+  if (unsubGame) { unsubGame(); unsubGame = null; }
+  if (!roomId) return;
+  unsubGame = listenLiveGame(window.__uid, roomId, s => { state = s; watchAnswers(); render(); });
+});
+
+// 교사 본인의 uid
+onTeacherAuthChange(u => { if (u) window.__uid = u.uid; });
+
+$('newGameBtn').addEventListener('click', async () => {
+  if (!roomId) return;
+  await createLiveGame({ roomId, items: ITEMS });
+  toast('게임을 준비했어요. 학생들이 들어오면 시작하세요.');
+});
+
+function watchAnswers() {
+  if (unsubAns) { unsubAns(); unsubAns = null; }
+  if (!state || state.currentIndex < 0) { answers = []; return; }
+  unsubAns = listenGameAnswers(window.__uid, roomId, state.sessionId, state.currentIndex, rows => {
+    answers = rows; render();
+  });
+}
+
+function render() {
+  const box = $('stage');
+  if (!state) { box.innerHTML = '<p class="empty">수업방을 고르고 <b>새 게임 준비</b>를 누르세요.</p>'; return; }
+
+  if (state.status === 'lobby') {
+    box.innerHTML = `
+      <p class="qnum">준비됨</p>
+      <p class="situation">학생들이 QR로 들어오면 시작하세요</p>
+      <p class="note">학생 화면에는 "선생님이 시작하기를 기다리는 중"이 떠 있습니다.</p>
+      <div class="acts"><button class="btn" id="startBtn">1번 문제 시작</button></div>`;
+    $('startBtn').onclick = () => setLiveGameState(roomId, { currentIndex: 0, status: 'question' });
+    return;
+  }
+
+  if (state.status === 'ended') {
+    box.innerHTML = `
+      <p class="qnum">끝났습니다</p>
+      <p class="situation">오늘 우리 반의 마음을 나눠봤어요</p>
+      <p class="note">학생 화면에는 각자의 점수가 떠 있습니다. 인상 깊었던 문항을 다시 이야기해 보세요.</p>
+      <div class="acts"><button class="btn ghost" id="againBtn">새 게임 준비</button></div>`;
+    $('againBtn').onclick = () => createLiveGame({ roomId, items: ITEMS });
+    return;
+  }
+
+  const it = state.items[state.currentIndex];
+  const last = state.currentIndex === state.items.length - 1;
+
+  if (state.status === 'question') {
+    box.innerHTML = `
+      <p class="qnum">${state.currentIndex + 1} / ${state.items.length}</p>
+      <p class="situation">${esc(it.situation)}</p>
+      <p class="counter">응답 <b>${answers.length}</b>명</p>
+      <p class="note">학생들이 ①내 마음과 ②우리 반이 고를 것을 각각 고르고 있습니다. 다 들어오면 공개하세요.</p>
+      <div class="acts"><button class="btn" id="revealBtn">우리 반 마음 공개</button></div>`;
+    $('revealBtn').onclick = () => setLiveGameState(roomId, { status: 'reveal' });
+    return;
+  }
+
+  // reveal
+  const counts = {}; it.options.forEach(o => counts[o] = 0);
+  answers.forEach(a => { if (a.feel in counts) counts[a.feel]++; });
+  const total = answers.length || 1;
+  const max = Math.max(...Object.values(counts));
+  const hits = answers.filter(a => counts[a.guess] === max && max > 0).length;
+
+  box.innerHTML = `
+    <p class="qnum">${state.currentIndex + 1} / ${state.items.length} · 공개</p>
+    <p class="situation">${esc(it.situation)}</p>
+    <div class="bars">
+      ${it.options.map(o => `
+        <div class="row ${counts[o] === max && max > 0 ? 'top' : ''}">
+          <div class="lab"><span>${o}</span><span>${counts[o]}명</span></div>
+          <div class="rail"><div class="val" style="width:${Math.round(counts[o] / total * 100)}%"></div></div>
+        </div>`).join('')}
+    </div>
+    <p class="counter" style="margin-top:16px">우리 반 마음을 맞힌 사람 <b>${hits}</b>명 / ${answers.length}명</p>
+    <p class="note">적게 나온 감정을 고른 학생에게 왜 그렇게 느꼈는지 물어보세요. 거기서 이야기가 나옵니다.</p>
+    <div class="acts">
+      <button class="btn" id="nextBtn">${last ? '끝내기' : '다음 문제'}</button>
+    </div>`;
+  $('nextBtn').onclick = () => last
+    ? setLiveGameState(roomId, { status: 'ended' })
+    : setLiveGameState(roomId, { currentIndex: state.currentIndex + 1, status: 'question' });
+}
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+</script>
+</body>
+</html>

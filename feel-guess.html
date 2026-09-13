@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="light">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>우리 반은 어떻게 느꼈을까</title>
+<style>
+  :root{
+    --paper:#fdf9f6; --ink:#332f2b; --soft:#7d7268; --line:#ece2da;
+    --main:#c9553f; --deep:#a03f2d; --bg:#fdf0ec; --mline:#f2d3c8;
+    --gold:#d9a441; --ok:#2f8a66; --okbg:#eefaf3;
+  }
+  *{box-sizing:border-box}
+  html,body{background:var(--paper)}
+  body{margin:0;color:var(--ink);line-height:1.6;padding:20px 16px 70px;
+    font-family:'Pretendard','Malgun Gothic',sans-serif}
+  .wrap{max-width:560px;margin:0 auto}
+  button{font-family:inherit;cursor:pointer}
+
+  header.top h1{margin:0;font-size:1.4rem;letter-spacing:-.02em}
+  header.top .bar{width:40px;height:4px;border-radius:99px;margin-top:8px;
+    background:linear-gradient(90deg,var(--main),var(--gold))}
+  header.top p{margin:8px 0 20px;color:var(--soft);font-size:.88rem}
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;
+    box-shadow:0 3px 14px rgba(120,80,60,.05);margin-bottom:14px}
+
+  .wait{text-align:center;padding:46px 20px}
+  .wait .big{font-size:2.6rem;margin-bottom:10px}
+  .wait p{margin:0;color:var(--soft)}
+  .dots::after{content:'';animation:dots 1.4s steps(4,end) infinite}
+  @keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+
+  .qnum{font-size:.8rem;font-weight:800;color:var(--main);letter-spacing:.04em}
+  .situation{font-size:1.18rem;font-weight:800;margin:8px 0 0;line-height:1.5}
+
+  .stage{font-size:.88rem;font-weight:800;color:var(--soft);margin:22px 0 10px;
+    padding-top:16px;border-top:1px dashed var(--line)}
+  .stage:first-of-type{border-top:0;padding-top:0;margin-top:20px}
+
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .opts button{padding:16px 8px;border:1.5px solid var(--line);border-radius:14px;background:#fff;
+    font-weight:800;font-size:1.02rem;color:var(--ink);transition:all .15s}
+  .opts button:hover:not(:disabled){transform:translateY(-2px)}
+  .opts button.on{background:var(--main);border-color:var(--main);color:#fff}
+  .opts button:disabled{opacity:.55;cursor:default;transform:none}
+  .opts.guess button.on{background:var(--deep);border-color:var(--deep)}
+
+  .go{width:100%;padding:15px;border:0;border-radius:13px;color:#fff;font-size:1.03rem;font-weight:800;
+    margin-top:18px;background:linear-gradient(135deg,var(--main),var(--deep));
+    box-shadow:0 6px 16px rgba(201,85,63,.24)}
+  .go:disabled{opacity:.4;box-shadow:none;cursor:default}
+
+  /* 결과 */
+  .bars{margin-top:6px}
+  .bar{margin:9px 0}
+  .bar .lab{display:flex;justify-content:space-between;font-size:.9rem;font-weight:700;margin-bottom:4px}
+  .bar .lab .me{font-size:.74rem;color:var(--main);font-weight:800}
+  .bar .rail{height:11px;background:var(--line);border-radius:99px;overflow:hidden}
+  .bar .val{height:100%;background:linear-gradient(90deg,var(--main),var(--gold));border-radius:99px;
+    width:0;transition:width .6s}
+  .bar.top .val{background:linear-gradient(90deg,var(--deep),var(--main))}
+
+  .verdict{border-radius:14px;padding:16px;margin-top:16px;text-align:center;font-weight:800}
+  .verdict.hit{background:var(--okbg);border:1.5px solid #bfe6d2;color:var(--ok)}
+  .verdict.miss{background:#f7f4f1;border:1.5px solid var(--line);color:var(--soft)}
+  .verdict small{display:block;font-weight:600;font-size:.84rem;margin-top:5px;color:var(--soft)}
+
+  .score{text-align:center;font-size:.86rem;color:var(--soft);margin-top:14px}
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>🫧 우리 반은 어떻게 느꼈을까</h1>
+    <div class="bar"></div>
+    <p id="sub">내 마음을 고르고, 우리 반이 뭘 제일 많이 골랐을지 맞혀봐요</p>
+  </header>
+
+  <!-- 대기 -->
+  <section class="card wait" id="waitCard">
+    <div class="big">🫧</div>
+    <p class="dots" id="waitMsg">선생님이 시작하기를 기다리는 중</p>
+  </section>
+
+  <!-- 문제 -->
+  <section class="card hidden" id="qCard">
+    <span class="qnum" id="qnum"></span>
+    <p class="situation" id="situation"></p>
+
+    <p class="stage">① 나는 이때 어떤 마음일까?</p>
+    <div class="opts" id="feelOpts"></div>
+
+    <p class="stage">② 우리 반은 뭘 제일 많이 골랐을까?</p>
+    <div class="opts guess" id="guessOpts"></div>
+
+    <button class="go" id="sendBtn" onclick="submit()" disabled>보내기</button>
+    <p class="score" id="scoreLine"></p>
+  </section>
+
+  <!-- 공개 -->
+  <section class="card hidden" id="revealCard">
+    <span class="qnum">우리 반의 마음</span>
+    <p class="situation" id="revealSit" style="font-size:1.02rem"></p>
+    <div class="bars" id="bars"></div>
+    <div class="verdict" id="verdict"></div>
+    <p class="score" id="scoreLine2"></p>
+  </section>
+
+  <!-- 끝 -->
+  <section class="card wait hidden" id="endCard">
+    <div class="big">🌈</div>
+    <p style="font-weight:800;color:var(--ink);font-size:1.2rem" id="endScore"></p>
+    <p id="endMsg"></p>
+  </section>
+
+</div>
+
+<script>
+  let cur = null, sessionId = '', myFeel = '', myGuess = '', answered = false, points = 0, done = 0;
+  const $ = id => document.getElementById(id);
+
+  function show(which) {
+    ['waitCard', 'qCard', 'revealCard', 'endCard'].forEach(id =>
+      $(id).classList.toggle('hidden', id !== which));
+  }
+
+  function drawOptions(box, opts, onPick, picked) {
+    box.innerHTML = '';
+    opts.forEach(o => {
+      const b = document.createElement('button');
+      b.textContent = o;
+      b.className = picked === o ? 'on' : '';
+      b.disabled = answered;
+      b.addEventListener('click', () => onPick(o));
+      box.appendChild(b);
+    });
+  }
+
+  function drawQuestion(state) {
+    const it = state.items[state.currentIndex];
+    if (!it) return;
+    $('qnum').innerText = `${state.currentIndex + 1} / ${state.items.length}`;
+    $('situation').innerText = it.situation;
+    drawOptions($('feelOpts'), it.options, v => { myFeel = v; refresh(); }, myFeel);
+    drawOptions($('guessOpts'), it.options, v => { myGuess = v; refresh(); }, myGuess);
+    $('sendBtn').classList.toggle('hidden', answered);
+    $('scoreLine').innerText = done ? `지금까지 ${points}점` : '';
+    refresh();
+    show('qCard');
+  }
+
+  function refresh() {
+    drawOptions($('feelOpts'), cur.items[cur.currentIndex].options, v => { myFeel = v; refresh(); }, myFeel);
+    drawOptions($('guessOpts'), cur.items[cur.currentIndex].options, v => { myGuess = v; refresh(); }, myGuess);
+    $('sendBtn').disabled = !(myFeel && myGuess) || answered;
+    $('sendBtn').innerText = answered ? '보냈어요 ✓' : '보내기';
+  }
+
+  async function submit() {
+    if (!myFeel || !myGuess) return;
+    answered = true;
+    $('sendBtn').disabled = true;
+    $('sendBtn').innerText = '보내는 중...';
+    await window.EAIM_SUBMIT({ qIndex: cur.currentIndex, sessionId, feel: myFeel, guess: myGuess });
+    $('sendBtn').innerText = '보냈어요 ✓  잠시 기다려요';
+    refresh();
+  }
+
+  window.EAIM_ON_STATE = function (state) {
+    if (!state) { show('waitCard'); return; }
+    sessionId = state.sessionId;
+
+    if (state.status === 'lobby') {
+      $('waitMsg').innerText = '선생님이 시작하기를 기다리는 중';
+      show('waitCard'); return;
+    }
+    if (state.status === 'ended') {
+      $('endScore').innerText = `${points}점`;
+      $('endMsg').innerText = done
+        ? '우리 반 마음을 잘 읽었어요. 오늘 친구들이 어떻게 느꼈는지 기억해 두세요.'
+        : '';
+      show('endCard'); return;
+    }
+
+    const changed = !cur || cur.currentIndex !== state.currentIndex;
+    cur = state;
+
+    if (state.status === 'question') {
+      if (changed) { myFeel = ''; myGuess = ''; answered = false; }
+      drawQuestion(state);
+    }
+  };
+
+  /* 공개 화면 — 교사가 '공개'를 누르면 응답 분포가 내려옵니다. */
+  window.EAIM_ON_REVEAL = function (answers) {
+    if (!cur) return;
+    const it = cur.items[cur.currentIndex];
+    const counts = {};
+    it.options.forEach(o => counts[o] = 0);
+    answers.forEach(a => { if (a.feel in counts) counts[a.feel]++; });
+    const total = answers.length || 1;
+    const max = Math.max(...Object.values(counts));
+    const tops = it.options.filter(o => counts[o] === max && max > 0);
+
+    $('revealSit').innerText = it.situation;
+    $('bars').innerHTML = it.options.map(o => `
+      <div class="bar ${counts[o] === max && max > 0 ? 'top' : ''}">
+        <div class="lab">
+          <span>${o} ${myFeel === o ? '<span class="me">← 나</span>' : ''}</span>
+          <span>${counts[o]}명</span>
+        </div>
+        <div class="rail"><div class="val" style="width:${Math.round(counts[o] / total * 100)}%"></div></div>
+      </div>`).join('');
+
+    const hit = tops.includes(myGuess);
+    if (hit && done === cur.currentIndex) { points += 100; }
+    if (done === cur.currentIndex) done++;
+
+    $('verdict').className = 'verdict ' + (hit ? 'hit' : 'miss');
+    $('verdict').innerHTML = hit
+      ? `우리 반 마음을 맞혔어요! +100점<small>내가 느낀 건 "${myFeel}"이었어요</small>`
+      : `우리 반은 "${tops.join(', ')}"이 가장 많았어요<small>내가 느낀 "${myFeel}"도 틀린 게 아니에요. 사람마다 다르게 느끼니까요.</small>`;
+    $('scoreLine2').innerText = `지금까지 ${points}점`;
+    show('revealCard');
+  };
+</script>
+
+<!-- ══ EAIM 교실 연동 ══ -->
+<script>
+  window.EAIM_APP_TYPE = 'feel-guess';
+  window.EAIM_TRACK    = 'mind';
+</script>
+<script type="module">
+  import { mountStudentGate, listenLiveGame, submitGameAnswer, listenGameAnswers, saveWork, toast }
+    from './eaim-classroom-core.js';
+
+  window.EAIM_SUBMIT = async (payload) => {
+    try { await submitGameAnswer(payload); }
+    catch (e) { console.error(e); toast('보내지 못했어요', false); }
+  };
+
+  mountStudentGate({
+    onReady: (student) => {
+      if (!student) return;
+      const sub = document.getElementById('sub');
+      if (sub) sub.textContent = `${student.roomTitle} · ${student.className || ''} ${student.number}번`;
+
+      let unsubAns = null;
+      let lastKey = '';
+
+      listenLiveGame(student.teacherUid, student.roomId, (state) => {
+        window.EAIM_ON_STATE(state);
+        if (!state) return;
+
+        const key = `${state.sessionId}_${state.currentIndex}_${state.status}`;
+        if (state.status === 'reveal' && key !== lastKey) {
+          lastKey = key;
+          if (unsubAns) unsubAns();
+          unsubAns = listenGameAnswers(
+            student.teacherUid, student.roomId, state.sessionId, state.currentIndex,
+            (rows) => window.EAIM_ON_REVEAL(rows)
+          );
+        }
+        if (state.status !== 'reveal' && unsubAns) { unsubAns(); unsubAns = null; }
+      });
+    }
+  });
+</script>
+</body>
+</html>
