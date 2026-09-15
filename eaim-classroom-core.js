@@ -55,7 +55,6 @@ const WORK_COL = () => (TRACK() === 'korean' ? 'koreanProgress' : 'reflections')
 /* ════════ 스튜디오 앱 목록 ════════ */
 export const CARE_APPS = {
   'mind-scale':      { track: 'mind',   file: 'mind-scale.html',       name: '마음 저울',       icon: '⚖️' },
-  'music-rep':       { track: 'mind',   file: 'music_rep.html',        name: '뮤직랩',          icon: '🎵' },
   'life-action':     { track: 'mind',   file: 'life-action-q.html',    name: '라이프 액션Q',    icon: '⚡' },
   'vibe-runway':     { track: 'mind',   file: 'my-vibe-runway.html',   name: '마이 바이브 런웨이', icon: '✨' },
   'family-harmony':  { track: 'mind',   file: 'family-harmony.html',   name: '패밀리 하모니',   icon: '🏠' },
